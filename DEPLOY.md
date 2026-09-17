@@ -87,6 +87,36 @@ Hasil yang diharapkan:
 {"ok":true,"database":"connected"}
 ```
 
+## 5. Aktifkan Google OAuth
+
+1. Buka **Google Cloud Console → APIs & Services → Credentials**.
+2. Buat **OAuth client ID** dengan tipe **Web application**.
+3. Tambahkan Authorized JavaScript origins:
+
+```text
+https://little-moment-kappa.vercel.app
+http://localhost:3010
+```
+
+4. Tambahkan Authorized redirect URIs:
+
+```text
+https://little-moment-kappa.vercel.app/api/auth/callback/google
+http://localhost:3010/api/auth/callback/google
+```
+
+5. Simpan Client ID dan Client Secret. Di Vercel, tambahkan:
+
+```text
+GOOGLE_CLIENT_ID=<client-id>
+GOOGLE_CLIENT_SECRET=<client-secret>
+NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true
+```
+
+`GOOGLE_CLIENT_SECRET` disimpan sebagai Secret. `GOOGLE_CLIENT_ID` dan `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED` disimpan sebagai Config. Setelah menambah variable, lakukan redeploy agar flag publik terbaca saat build.
+
+Better Auth menggunakan callback default `/api/auth/callback/google`; `BETTER_AUTH_URL` harus menunjuk ke domain yang sama dengan callback production.
+
 ## Legacy: deployment Docker di VPS
 
 Jika suatu saat VPS dipakai lagi, Docker Compose lama tetap tersedia di `docker-compose.yml` dan dapat memakai MySQL lokal. Jangan menjalankan dua database production sekaligus tanpa rencana migrasi.

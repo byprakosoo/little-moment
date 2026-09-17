@@ -1,34 +1,82 @@
-# Deployment Little Moment ke VPS
+# Deployment Little Moment dengan TiDB Cloud Starter
 
-Target awal memakai Docker Compose dengan MySQL 8.4 dan Next.js standalone. Semua komponen aplikasi tidak membutuhkan layanan SaaS berbayar; object storage foto masih berupa interface metadata dan perlu dihubungkan ke storage VPS sebelum upload binary diaktifkan.
+Production memakai Next.js di Vercel dan TiDB Cloud Starter sebagai database MySQL-compatible. TiDB Cloud Starter mewajibkan TLS pada public endpoint; kode aplikasi otomatis mengaktifkan TLS ketika host `DATABASE_URL` berakhiran `.tidbcloud.com`, atau ketika `TIDB_ENABLE_SSL=true`.
 
-## 1. Siapkan environment di server
+Foto tetap disimpan sebagai metadata di database. Object storage privat perlu dikonfigurasi terpisah sebelum upload binary production diaktifkan.
 
-```bash
-cp .env.example .env
-openssl rand -hex 32
-```
+## 1. Buat instance TiDB Cloud Starter
 
-Isi minimal:
+1. Buka TiDB Cloud Console dan buat instance **Starter**.
+2. Buka instance tersebut lalu klik **Connect**.
+3. Pilih koneksi **Public**, branch `main`, dan metode koneksi General.
+4. Generate password lalu simpan di password manager.
+5. Tambahkan IP laptop pada firewall TiDB untuk menjalankan migration dari lokal.
+6. Salin MySQL connection string yang disediakan TiDB. User TiDB Cloud Starter biasanya memiliki prefix instance, jadi jangan menggantinya dengan `root` polos.
+
+Formatnya:
 
 ```dotenv
-MYSQL_PASSWORD=...
-MYSQL_ROOT_PASSWORD=...
-BETTER_AUTH_SECRET=...
-BETTER_AUTH_URL=http://HOST-ATAU-DOMAIN
-NEXT_PUBLIC_APP_URL=http://HOST-ATAU-DOMAIN
+DATABASE_URL=mysql://<prefix>.root:<password>@<gateway>.tidbcloud.com:4000/test
+TIDB_ENABLE_SSL=true
 ```
 
-## 2. Jalankan stack
+## 2. Jalankan migration dari lokal
 
 ```bash
-sudo docker compose up -d --build mysql migrate app
-sudo docker compose ps
-curl http://127.0.0.1:3000/api/health
+cp .env.example .env.local
 ```
 
-`/api/health` harus mengembalikan `{"ok":true,"database":"connected","mode":"api"}`. Container `migrate` menjalankan `drizzle-kit push --force` saat deployment awal agar schema fresh dapat dibuat non-interaktif; migration SQL tetap disimpan di `drizzle/` untuk alur migrasi berikutnya.
+Isi `.env.local` dengan connection string TiDB dan secret lokal:
 
-## 3. Catatan autentikasi
+```dotenv
+DATABASE_URL=mysql://<prefix>.root:<password>@<gateway>.tidbcloud.com:4000/little_moment
+TIDB_ENABLE_SSL=true
+BETTER_AUTH_SECRET=secret-lokal-acak
+NEXT_PUBLIC_BACKEND_MODE=api
+```
 
-Better Auth sudah terpasang dengan adapter Drizzle/MySQL dan route `/api/auth/*`. Google OAuth sengaja nonaktif sampai `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, serta callback URL domain produksi dikonfigurasi. Email/password adapter aktif untuk fase berikutnya.
+Jika database default dari TiDB adalah `test`, gunakan database itu atau buat database aplikasi melalui SQL Editor:
+
+```sql
+CREATE DATABASE little_moment;
+```
+
+Apply schema:
+
+```bash
+npm install
+npm run db:push
+```
+
+Verifikasi koneksi:
+
+```bash
+npm run db:studio
+```
+
+## 3. Set environment production di Vercel
+
+```bash
+vercel env add DATABASE_URL production --sensitive
+vercel env add TIDB_ENABLE_SSL production --value "true" --yes
+vercel env add NEXT_PUBLIC_BACKEND_MODE production --value "api" --force --yes
+```
+
+`BETTER_AUTH_URL` dan `NEXT_PUBLIC_APP_URL` harus memakai URL production Little Moment.
+
+## 4. Deploy dan cek health
+
+```bash
+vercel --prod --yes
+curl https://little-moment-kappa.vercel.app/api/health
+```
+
+Hasil yang diharapkan:
+
+```json
+{"ok":true,"database":"connected"}
+```
+
+## Legacy: deployment Docker di VPS
+
+Jika suatu saat VPS dipakai lagi, Docker Compose lama tetap tersedia di `docker-compose.yml` dan dapat memakai MySQL lokal. Jangan menjalankan dua database production sekaligus tanpa rencana migrasi.

@@ -26,7 +26,7 @@ export type Entry = {
 
 type DemoState = {
   session: boolean;
-  child: { nickname: string; birthDate: string } | null;
+  child: { id?: string; nickname: string; birthDate: string } | null;
   partnerEmail: string;
   entries: Entry[];
   forcedState: "empty" | "upload-error" | "storage-full" | null;
@@ -38,7 +38,7 @@ const isoDate = (value: Date) => value.toISOString().slice(0, 10);
 
 const defaultState: DemoState = {
   session: false,
-  child: { nickname: "Aksa", birthDate: "2025-01-12" },
+  child: { id: "child-1", nickname: "Aksa", birthDate: "2025-01-12" },
   partnerEmail: "mama@example.com",
   entries: [
     {
@@ -103,7 +103,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       fetch("/api/bootstrap", { credentials: "include" }).then(async (response) => {
         if (!response.ok) return;
         const payload = await response.json();
-        setState((current) => ({ ...current, child: payload.child ? { nickname: payload.child.nickname, birthDate: payload.child.birthDate } : null, entries: payload.entries || current.entries, partnerEmail: payload.members?.find((member: { role: string }) => member.role === "member")?.displayName || current.partnerEmail, session: true }));
+        setState((current) => ({ ...current, child: payload.child ? { id: payload.child.id, nickname: payload.child.nickname, birthDate: payload.child.birthDate } : null, entries: payload.entries || current.entries, partnerEmail: payload.members?.find((member: { role: string }) => member.role === "member")?.displayName || current.partnerEmail, session: true }));
       }).catch(() => undefined);
       setHydrated(true);
       return;
@@ -128,7 +128,11 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     signIn: () => setState((current) => ({ ...current, session: true })),
     saveChild: (nickname, birthDate) => {
       setState((current) => ({ ...current, child: { nickname, birthDate } }));
-      void apiRequest("/api/families", { method: "POST", body: JSON.stringify({ nickname, birthDate, familyName: "Keluarga Prakoso" }) }).catch(() => undefined);
+      void apiRequest("/api/families", { method: "POST", body: JSON.stringify({ nickname, birthDate, familyName: "Keluarga Prakoso" }) })
+        .then((result) => {
+          if (result?.childId) setState((current) => current.child ? { ...current, child: { ...current.child, id: result.childId } } : current);
+        })
+        .catch(() => undefined);
     },
     invitePartner: (partnerEmail) => {
       setState((current) => ({ ...current, partnerEmail }));
@@ -146,7 +150,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
           ? current.entries.map((item) => (item.id === entry.id ? entry : item))
           : [entry, ...current.entries],
       }));
-      void apiRequest(entry.id.startsWith("entry-") && !input.id ? "/api/entries" : `/api/entries/${entry.id}`, { method: input.id ? "PATCH" : "POST", body: JSON.stringify({ childId: state.child ? "child-1" : undefined, type: entry.type, title: entry.title, body: entry.body, happenedAt: entry.happenedAt, photos: entry.photos.map((photo, index) => ({ storageKey: `mock/${photo.id}`, mimeType: "image/jpeg", byteSize: 0, altText: photo.label, sortOrder: index })) }) }).catch(() => undefined);
+      void apiRequest(entry.id.startsWith("entry-") && !input.id ? "/api/entries" : `/api/entries/${entry.id}`, { method: input.id ? "PATCH" : "POST", body: JSON.stringify({ childId: state.child?.id, type: entry.type, title: entry.title, body: entry.body, happenedAt: entry.happenedAt, photos: entry.photos.map((photo, index) => ({ storageKey: `mock/${photo.id}`, mimeType: "image/jpeg", byteSize: 0, altText: photo.label, sortOrder: index })) }) }).catch(() => undefined);
       return entry;
     },
     deleteEntry: (id) => {

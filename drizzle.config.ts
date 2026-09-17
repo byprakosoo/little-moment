@@ -10,6 +10,12 @@ const configuredDatabaseUrl = process.env.DATABASE_URL?.trim();
 const databaseUrl = configuredDatabaseUrl || "mysql://root:root@127.0.0.1:3306/little_moment";
 
 if (configuredDatabaseUrl) {
+  if (configuredDatabaseUrl === "[SENSITIVE]" || configuredDatabaseUrl.includes("[SENSITIVE]")) {
+    throw new Error(
+      "DATABASE_URL di .env.local masih berupa placeholder [SENSITIVE]. Salin connection string asli dari TiDB Cloud Console > Connect; Vercel tidak dapat mengekspor secret ini.",
+    );
+  }
+
   try {
     new URL(configuredDatabaseUrl);
   } catch {

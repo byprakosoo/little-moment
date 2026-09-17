@@ -22,6 +22,14 @@ TIDB_ENABLE_SSL=true
 
 ## 2. Jalankan migration dari lokal
 
+`drizzle-kit` membaca `.env.local` melalui konfigurasi repository ini. Environment variable di Vercel tidak otomatis tersedia di terminal lokal. Jika variable production sudah tersimpan di Vercel, Anda dapat menariknya ke file lokal (file ini di-ignore oleh Git):
+
+```bash
+npx vercel env pull .env.local --environment=production
+```
+
+Atau buat file secara manual:
+
 ```bash
 cp .env.example .env.local
 ```

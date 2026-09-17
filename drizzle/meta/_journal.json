@@ -8,6 +8,13 @@
       "when": 1789617671198,
       "tag": "0000_stormy_gargoyle",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1789639549571,
+      "tag": "0001_add-photo-data-url",
+      "breakpoints": true
     }
   ]
 }

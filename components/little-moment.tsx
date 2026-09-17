@@ -144,7 +144,7 @@ export function PhotoPicker({ photos, onChange, disabled = false }: { photos: Ph
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pickerError, setPickerError] = useState("");
   const addPhotos = () => { if (!disabled) fileInputRef.current?.click(); };
-  const handleFiles = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFiles = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
     event.target.value = "";
     if (files.length === 0) return;
@@ -155,7 +155,12 @@ export function PhotoPicker({ photos, onChange, disabled = false }: { photos: Ph
       if (accepted.length >= available) { errors.push("Maksimal 6 foto per cerita."); break; }
       if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) { errors.push(`${file.name}: gunakan JPG, PNG, atau WebP.`); continue; }
       if (file.size > 10 * 1024 * 1024) { errors.push(`${file.name}: ukuran maksimal 10 MB.`); continue; }
-      accepted.push({ id: `photo-${Date.now()}-${accepted.length}`, label: file.name, status: "ready", previewUrl: URL.createObjectURL(file), mimeType: file.type, byteSize: file.size });
+      try {
+        const dataUrl = await compressPhoto(file);
+        accepted.push({ id: `photo-${Date.now()}-${accepted.length}`, label: file.name, status: "ready", previewUrl: dataUrl, dataUrl, mimeType: "image/jpeg", byteSize: dataUrlByteSize(dataUrl) });
+      } catch {
+        errors.push(`${file.name}: foto tidak bisa diproses.`);
+      }
     }
     if (accepted.length > 0) onChange([...photos, ...accepted]);
     setPickerError(errors.join(" "));
@@ -163,6 +168,27 @@ export function PhotoPicker({ photos, onChange, disabled = false }: { photos: Ph
   const move = (index: number, direction: -1 | 1) => { const target = index + direction; if (target < 0 || target >= photos.length) return; const next = [...photos]; [next[index], next[target]] = [next[target], next[index]]; onChange(next); };
   const remove = (photo: Photo) => { if (photo.previewUrl?.startsWith("blob:")) URL.revokeObjectURL(photo.previewUrl); onChange(photos.filter((item) => item.id !== photo.id)); };
   return <div className="photo-picker"><div className="photo-picker__head"><div><label>Foto <span className="optional">(opsional)</span></label><p>JPG, PNG, WebP · maksimal 10 MB per foto</p></div><><input ref={fileInputRef} className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handleFiles} disabled={disabled} /><Button variant="secondary" disabled={disabled || photos.length >= 6} onClick={addPhotos}><Plus size={17} weight="bold" /> Tambah foto</Button></></div>{photos.length > 0 && <div className="photo-picker__grid">{photos.map((photo, index) => <div className="photo-slot" key={photo.id}><PhotoPlaceholder photo={photo} index={index} /><div className="photo-slot__actions"><button type="button" onClick={() => move(index, -1)} disabled={index === 0} aria-label="Pindahkan foto ke kiri"><CaretUp size={15} /></button><button type="button" onClick={() => move(index, 1)} disabled={index === photos.length - 1} aria-label="Pindahkan foto ke kanan"><CaretDown size={15} /></button><button type="button" onClick={() => remove(photo)} aria-label={`Hapus ${photo.label}`}><X size={15} /></button></div></div>)}</div>}{pickerError && <span className="field__error" role="alert">{pickerError}</span>}</div>;
+}
+
+const MAX_PHOTO_DIMENSION = 1600;
+const JPEG_QUALITY = 0.82;
+
+function dataUrlByteSize(dataUrl: string) {
+  const base64 = dataUrl.split(",")[1] || "";
+  return Math.ceil((base64.length * 3) / 4);
+}
+
+async function compressPhoto(file: File) {
+  const source = await createImageBitmap(file);
+  const scale = Math.min(1, MAX_PHOTO_DIMENSION / Math.max(source.width, source.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(source.width * scale));
+  canvas.height = Math.max(1, Math.round(source.height * scale));
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Canvas unavailable");
+  context.drawImage(source, 0, 0, canvas.width, canvas.height);
+  source.close();
+  return canvas.toDataURL("image/jpeg", JPEG_QUALITY);
 }
 
 export function DeleteDialog({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: () => void }) {

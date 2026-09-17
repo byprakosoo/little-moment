@@ -1,4 +1,4 @@
-import { boolean, datetime, index, int, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
+import { boolean, datetime, index, int, longtext, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 export const user = mysqlTable("user", {
   id: varchar("id", { length: 191 }).primaryKey(),
@@ -93,6 +93,7 @@ export const photos = mysqlTable("photos", {
   byteSize: int("byte_size").notNull().default(0),
   checksum: varchar("checksum", { length: 128 }),
   altText: varchar("alt_text", { length: 255 }),
+  dataUrl: longtext("data_url"),
   status: varchar("status", { length: 24 }).notNull().default("uploaded"),
   sortOrder: int("sort_order").notNull().default(0),
   createdAt: datetime("created_at").notNull(),

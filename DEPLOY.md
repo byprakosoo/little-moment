@@ -2,7 +2,7 @@
 
 Production memakai Next.js di Vercel dan TiDB Cloud Starter sebagai database MySQL-compatible. TiDB Cloud Starter mewajibkan TLS pada public endpoint; kode aplikasi otomatis mengaktifkan TLS ketika host `DATABASE_URL` berakhiran `.tidbcloud.com`, atau ketika `TIDB_ENABLE_SSL=true`.
 
-Foto tetap disimpan sebagai metadata di database. Object storage privat perlu dikonfigurasi terpisah sebelum upload binary production diaktifkan.
+Untuk MVP tanpa service tambahan, foto dikompres di browser (maksimal 1.600 px pada sisi terpanjang) lalu disimpan sebagai data URL JPEG di kolom `photos.data_url` TiDB. Ini membuat foto bertahan setelah reload dan tetap privat di balik session. Object storage privat (misalnya R2) dapat menggantikan strategi inline ini ketika volume foto mulai besar.
 
 ## 1. Buat instance TiDB Cloud Starter
 
@@ -56,6 +56,12 @@ Apply schema:
 ```bash
 npm install
 npm run db:push
+```
+
+Jika `db:push` berhenti pada konflik index foreign key lama, jalankan perubahan kolom secara langsung dari SQL Editor TiDB lalu ulangi deploy:
+
+```sql
+ALTER TABLE photos ADD COLUMN data_url LONGTEXT NULL;
 ```
 
 Verifikasi koneksi:

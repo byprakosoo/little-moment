@@ -10,6 +10,7 @@ export type Photo = {
   label: string;
   status: PhotoStatus;
   previewUrl?: string;
+  dataUrl?: string;
   mimeType?: string;
   byteSize?: number;
 };
@@ -73,7 +74,7 @@ type DemoContextValue = DemoState & {
   signIn: () => void;
   saveChild: (nickname: string, birthDate: string) => void;
   invitePartner: (email: string) => void;
-  saveEntry: (entry: Omit<Entry, "id" | "updatedAt"> & { id?: string }) => Entry;
+  saveEntry: (entry: Omit<Entry, "id" | "updatedAt"> & { id?: string }) => Promise<Entry>;
   deleteEntry: (id: string) => void;
   setForcedState: (state: DemoState["forcedState"]) => void;
   startExport: () => void;
@@ -103,7 +104,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       fetch("/api/bootstrap", { credentials: "include" }).then(async (response) => {
         if (!response.ok) return;
         const payload = await response.json();
-        setState((current) => ({ ...current, child: payload.child ? { id: payload.child.id, nickname: payload.child.nickname, birthDate: payload.child.birthDate } : null, entries: payload.entries || current.entries, partnerEmail: payload.members?.find((member: { role: string }) => member.role === "member")?.displayName || current.partnerEmail, session: true }));
+        setState((current) => ({ ...current, child: payload.child ? { id: payload.child.id, nickname: payload.child.nickname, birthDate: payload.child.birthDate } : null, entries: (payload.entries || current.entries).map((entry: Entry) => ({ ...entry, photos: entry.photos.map((photo) => ({ ...photo, dataUrl: photo.previewUrl })) })), partnerEmail: payload.members?.find((member: { role: string }) => member.role === "member")?.displayName || current.partnerEmail, session: true }));
       }).catch(() => undefined);
       setHydrated(true);
       return;
@@ -138,7 +139,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       setState((current) => ({ ...current, partnerEmail }));
       void apiRequest("/api/invites", { method: "POST", body: JSON.stringify({ email: partnerEmail }) }).catch(() => undefined);
     },
-    saveEntry: (input) => {
+    saveEntry: async (input) => {
       const entry: Entry = {
         ...input,
         id: input.id ?? `entry-${Date.now()}`,
@@ -150,8 +151,20 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
           ? current.entries.map((item) => (item.id === entry.id ? entry : item))
           : [entry, ...current.entries],
       }));
-      void apiRequest(entry.id.startsWith("entry-") && !input.id ? "/api/entries" : `/api/entries/${entry.id}`, { method: input.id ? "PATCH" : "POST", body: JSON.stringify({ childId: state.child?.id, type: entry.type, title: entry.title, body: entry.body, happenedAt: entry.happenedAt, photos: entry.photos.map((photo, index) => ({ storageKey: `mock/${photo.id}`, mimeType: "image/jpeg", byteSize: 0, altText: photo.label, sortOrder: index })) }) }).catch(() => undefined);
-      return entry;
+      if (!API_MODE) return entry;
+      const isNew = !input.id;
+      try {
+        const result = await apiRequest(isNew ? "/api/entries" : `/api/entries/${entry.id}`, { method: isNew ? "POST" : "PATCH", body: JSON.stringify({ childId: state.child?.id, type: entry.type, title: entry.title, body: entry.body, happenedAt: entry.happenedAt, photos: entry.photos.map((photo, index) => ({ storageKey: `inline/${photo.id}`, dataUrl: photo.dataUrl || photo.previewUrl, mimeType: photo.mimeType || "image/jpeg", byteSize: photo.byteSize || 0, altText: photo.label, sortOrder: index })) }) });
+        if (isNew && result?.id) {
+          const persisted = { ...entry, id: result.id as string };
+          setState((current) => ({ ...current, entries: current.entries.map((item) => item.id === entry.id ? persisted : item) }));
+          return persisted;
+        }
+        return entry;
+      } catch (error) {
+        if (isNew) setState((current) => ({ ...current, entries: current.entries.filter((item) => item.id !== entry.id) }));
+        throw error;
+      }
     },
     deleteEntry: (id) => {
       setState((current) => ({ ...current, entries: current.entries.filter((entry) => entry.id !== id) }));

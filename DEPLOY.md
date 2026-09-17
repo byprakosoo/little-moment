@@ -28,6 +28,8 @@ TIDB_ENABLE_SSL=true
 npx vercel env pull .env.local --environment=production
 ```
 
+Catatan: untuk variable yang ditandai **Sensitive**, Vercel CLI dapat menulis placeholder `[SENSITIVE]` alih-alih nilainya. Jika itu terjadi pada `DATABASE_URL`, salin URI asli dari menu **Connect** TiDB ke `.env.local` secara manual.
+
 Atau buat file secara manual:
 
 ```bash

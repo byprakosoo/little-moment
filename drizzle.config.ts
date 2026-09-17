@@ -6,7 +6,19 @@ import { defineConfig } from "drizzle-kit";
 dotenv.config({ path: ".env.local" });
 dotenv.config({ path: ".env" });
 
-const databaseUrl = process.env.DATABASE_URL || "mysql://root:root@127.0.0.1:3306/little_moment";
+const configuredDatabaseUrl = process.env.DATABASE_URL?.trim();
+const databaseUrl = configuredDatabaseUrl || "mysql://root:root@127.0.0.1:3306/little_moment";
+
+if (configuredDatabaseUrl) {
+  try {
+    new URL(configuredDatabaseUrl);
+  } catch {
+    throw new Error(
+      "DATABASE_URL tidak valid. Gunakan URI MySQL lengkap dari TiDB Cloud, misalnya mysql://user:password@host.tidbcloud.com:4000/test.",
+    );
+  }
+}
+
 const isTiDBCloud = databaseUrl.includes(".tidbcloud.com");
 
 const dbCredentials = isTiDBCloud || process.env.TIDB_ENABLE_SSL === "true"

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, CalendarBlank } from "@phosphor-icons/react";
 import { BackLink, Button, OnboardingCard, PageFrame, StepLabel, TextField, Avatar } from "@/components/little-moment";
 import { useDemo } from "@/components/demo-store";
@@ -9,9 +9,37 @@ import { useDemo } from "@/components/demo-store";
 export default function OnboardingPage() {
   const router = useRouter();
   const { child, saveChild } = useDemo();
+  const apiMode = process.env.NEXT_PUBLIC_BACKEND_MODE === "api";
+  const [checkingProfile, setCheckingProfile] = useState(apiMode);
   const [nickname, setNickname] = useState(child?.nickname ?? "");
   const [birthDate, setBirthDate] = useState(child?.birthDate ?? "");
   const [errors, setErrors] = useState<{ nickname?: string; birthDate?: string }>({});
+
+  useEffect(() => {
+    if (!apiMode) return;
+    let active = true;
+    fetch("/api/bootstrap", { credentials: "include" })
+      .then(async (response) => {
+        if (!active) return;
+        if (response.status === 401) {
+          router.replace("/signin");
+          return;
+        }
+        if (response.ok) {
+          const payload = await response.json() as { child?: { nickname: string; birthDate: string } | null };
+          if (payload.child) {
+            router.replace("/timeline");
+            return;
+          }
+        }
+        setCheckingProfile(false);
+      })
+      .catch(() => {
+        if (active) setCheckingProfile(false);
+      });
+    return () => { active = false; };
+  }, [apiMode, router]);
+
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     const next: typeof errors = {};
@@ -21,5 +49,5 @@ export default function OnboardingPage() {
     setErrors(next);
     if (Object.keys(next).length === 0) { saveChild(nickname.trim(), birthDate); router.push("/invite-partner"); }
   };
-  return <PageFrame className="form-page"><div className="form-page__top"><BackLink href="/signin" /><StepLabel current={1} /></div><OnboardingCard eyebrow="Profil anak" title="Siapa yang ingin kamu abadikan?"><form className="form-stack" onSubmit={submit} noValidate><TextField label="Nama panggilan" id="nickname" value={nickname} onChange={setNickname} placeholder="Contoh: Aksa" required maxLength={40} error={errors.nickname} /><div className="field"><label htmlFor="birthDate">Tanggal lahir</label><div className="date-input-wrap"><CalendarBlank size={19} /><input id="birthDate" type="date" value={birthDate} onChange={(event) => setBirthDate(event.target.value)} aria-invalid={Boolean(errors.birthDate)} aria-describedby={errors.birthDate ? "birthDate-error" : undefined} /></div>{errors.birthDate && <span className="field__error" id="birthDate-error" role="alert">{errors.birthDate}</span>}</div>{nickname && <div className="child-preview"><Avatar name={nickname} size="lg" /><div className="child-preview__copy"><strong>{nickname}</strong><span>Profil anak siap disimpan</span></div></div>}<div className="form-actions"><Button type="submit">Lanjutkan <ArrowRight size={18} weight="bold" /></Button></div></form></OnboardingCard></PageFrame>;
+  return <PageFrame className="form-page"><div className="form-page__top"><BackLink href="/signin" /><StepLabel current={1} /></div><OnboardingCard eyebrow="Profil anak" title="Siapa yang ingin kamu abadikan?">{checkingProfile ? <p className="small">Memeriksa profil keluarga...</p> : <form className="form-stack" onSubmit={submit} noValidate><TextField label="Nama panggilan" id="nickname" value={nickname} onChange={setNickname} placeholder="Contoh: Aksa" required maxLength={40} error={errors.nickname} /><div className="field"><label htmlFor="birthDate">Tanggal lahir</label><div className="date-input-wrap"><CalendarBlank size={19} /><input id="birthDate" type="date" value={birthDate} onChange={(event) => setBirthDate(event.target.value)} aria-invalid={Boolean(errors.birthDate)} aria-describedby={errors.birthDate ? "birthDate-error" : undefined} /></div>{errors.birthDate && <span className="field__error" id="birthDate-error" role="alert">{errors.birthDate}</span>}</div>{nickname && <div className="child-preview"><Avatar name={nickname} size="lg" /><div className="child-preview__copy"><strong>{nickname}</strong><span>Profil anak siap disimpan</span></div></div>}<div className="form-actions"><Button type="submit">Lanjutkan <ArrowRight size={18} weight="bold" /></Button></div></form>}</OnboardingCard></PageFrame>;
 }

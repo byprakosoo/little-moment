@@ -83,6 +83,9 @@ type DemoContextValue = DemoState & {
 const DemoContext = createContext<DemoContextValue | null>(null);
 const STORAGE_KEY = "little-moment-prototype-v1";
 const API_MODE = process.env.NEXT_PUBLIC_BACKEND_MODE === "api";
+const initialState: DemoState = API_MODE
+  ? { ...defaultState, child: null, partnerEmail: "", entries: [] }
+  : defaultState;
 
 async function apiRequest(path: string, init?: RequestInit) {
   if (!API_MODE) return null;
@@ -92,7 +95,7 @@ async function apiRequest(path: string, init?: RequestInit) {
 }
 
 export function DemoProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<DemoState>(defaultState);
+  const [state, setState] = useState<DemoState>(initialState);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -156,7 +159,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       window.setTimeout(() => setState((current) => ({ ...current, exportStatus: "ready" })), 1100);
     },
     resetDemo: () => {
-      setState(defaultState);
+      setState(initialState);
       if (!API_MODE) window.localStorage.removeItem(STORAGE_KEY);
     },
   }), [state]);

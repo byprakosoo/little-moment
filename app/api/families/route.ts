@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { children as childrenTable, families, familyMembers } from "@/db/schema";
 import { getRequestUser, handleApiError } from "@/lib/api-auth";
@@ -13,6 +14,21 @@ export async function POST(request: Request) {
     if (!body.nickname || !body.birthDate) return NextResponse.json({ error: "nickname and birthDate are required" }, { status: 400 });
     const nickname = body.nickname;
     const birthDate = body.birthDate;
+
+    // OAuth redirects every sign-in through onboarding. Reuse the existing
+    // family/child instead of creating duplicates when a returning user posts
+    // the form again (or when onboarding is submitted twice).
+    const [existingMembership] = await db.select({ familyId: familyMembers.familyId }).from(familyMembers).where(eq(familyMembers.userId, user.id)).limit(1);
+    if (existingMembership) {
+      const [existingChild] = await db.select({ id: childrenTable.id }).from(childrenTable).where(eq(childrenTable.familyId, existingMembership.familyId)).limit(1);
+      if (existingChild) return NextResponse.json({ familyId: existingMembership.familyId, childId: existingChild.id, existing: true });
+
+      const childId = crypto.randomUUID();
+      const now = new Date();
+      await db.insert(childrenTable).values({ id: childId, familyId: existingMembership.familyId, nickname: nickname.trim(), birthDate, createdAt: now, updatedAt: now });
+      return NextResponse.json({ familyId: existingMembership.familyId, childId, existing: true }, { status: 200 });
+    }
+
     const now = new Date();
     const familyId = crypto.randomUUID();
     const childId = crypto.randomUUID();

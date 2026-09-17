@@ -1,5 +1,10 @@
-import "dotenv/config";
+import dotenv from "dotenv";
 import { defineConfig } from "drizzle-kit";
+
+// Drizzle Kit does not load Next.js' .env.local automatically. Load it first
+// so local migrations use the same TiDB credentials as the app.
+dotenv.config({ path: ".env.local" });
+dotenv.config({ path: ".env" });
 
 const databaseUrl = process.env.DATABASE_URL || "mysql://root:root@127.0.0.1:3306/little_moment";
 const isTiDBCloud = databaseUrl.includes(".tidbcloud.com");

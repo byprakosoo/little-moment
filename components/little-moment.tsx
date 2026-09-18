@@ -15,6 +15,7 @@ import {
   DotsThree,
   DownloadSimple,
   EnvelopeSimple,
+  Gear,
   ImageSquare,
   LockKey,
   MagicWand,
@@ -75,7 +76,7 @@ export function AppHeader({ showSettings = true }: { showSettings?: boolean }) {
     <BrandMark compact />
     <div className="app-header__right">
       {child && <span className="private-pill"><LockKey size={14} weight="bold" /> Privat</span>}
-      {showSettings && <Link className={`icon-button ${path === "/family-settings" ? "is-active" : ""}`} href="/family-settings" aria-label="Buka pengaturan keluarga"><DotsThree size={22} /></Link>}
+      {showSettings && <Link className={`icon-button ${path === "/family-settings" ? "is-active" : ""}`} href="/family-settings" aria-label="Buka pengaturan keluarga" title="Pengaturan keluarga"><Gear size={21} weight="duotone" /></Link>}
     </div>
   </header>;
 }

@@ -16,6 +16,8 @@ export default function SignInPage() {
   const [isRegister, setIsRegister] = useState(false);
   const apiMode = process.env.NEXT_PUBLIC_BACKEND_MODE === "api";
   const googleEnabled = apiMode && process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true";
+  const inviteToken = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("invite") : null;
+  const postAuthPath = inviteToken ? `/invite?token=${encodeURIComponent(inviteToken)}` : "/onboarding";
   const handleSignIn = () => {
     setError("");
     if (!apiMode) {
@@ -24,7 +26,7 @@ export default function SignInPage() {
     }
     if (googleEnabled) {
       setLoading(true);
-      void authClient.signIn.social({ provider: "google", callbackURL: "/onboarding" }).then((result) => {
+      void authClient.signIn.social({ provider: "google", callbackURL: postAuthPath }).then((result) => {
         if (result.error) { setError(result.error.message || "Kami belum bisa menyelesaikan proses masuk. Coba lagi."); setLoading(false); }
       }).catch(() => { setError("Kami belum bisa menyelesaikan proses masuk. Coba lagi."); setLoading(false); });
       return;
@@ -47,7 +49,7 @@ export default function SignInPage() {
         setError(result.error.message || "Email atau password belum benar.");
         return;
       }
-      router.push("/onboarding");
+      router.push(postAuthPath);
     } catch {
       setError("Kami belum bisa menyelesaikan proses masuk. Coba lagi.");
     } finally {

@@ -123,6 +123,17 @@ NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true
 
 Better Auth menggunakan callback default `/api/auth/callback/google`; `BETTER_AUTH_URL` harus menunjuk ke domain yang sama dengan callback production.
 
+## 6. Aktifkan email undangan pasangan
+
+Fitur undangan memakai Resend API. Buat API key di Resend, verifikasi domain pengirim, lalu tambahkan environment variables berikut di Vercel untuk **Production**:
+
+```text
+RESEND_API_KEY=re_...
+RESEND_FROM_EMAIL=Little Moment <onboarding@domain-yang-sudah-diverifikasi.com>
+```
+
+Setelah itu redeploy. Jika variable belum diisi, aplikasi sengaja mengembalikan error dan tidak menampilkan undangan sebagai berhasil terkirim.
+
 ## Legacy: deployment Docker di VPS
 
 Jika suatu saat VPS dipakai lagi, Docker Compose lama tetap tersedia di `docker-compose.yml` dan dapat memakai MySQL lokal. Jangan menjalankan dua database production sekaligus tanpa rencana migrasi.

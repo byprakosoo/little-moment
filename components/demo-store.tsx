@@ -75,7 +75,7 @@ const defaultState: DemoState = {
 type DemoContextValue = DemoState & {
   signIn: () => void;
   saveChild: (nickname: string, birthDate: string) => void;
-  invitePartner: (email: string) => void;
+  invitePartner: (email: string) => Promise<void>;
   updateFamilyName: (name: string) => Promise<void>;
   saveEntry: (entry: Omit<Entry, "id" | "updatedAt"> & { id?: string }) => Promise<Entry>;
   deleteEntry: (id: string) => void;
@@ -138,9 +138,16 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
         })
         .catch(() => undefined);
     },
-    invitePartner: (partnerEmail) => {
+    invitePartner: async (partnerEmail) => {
+      const previousEmail = state.partnerEmail;
       setState((current) => ({ ...current, partnerEmail }));
-      void apiRequest("/api/invites", { method: "POST", body: JSON.stringify({ email: partnerEmail }) }).catch(() => undefined);
+      if (!API_MODE) return;
+      try {
+        await apiRequest("/api/invites", { method: "POST", body: JSON.stringify({ email: partnerEmail }) });
+      } catch (error) {
+        setState((current) => ({ ...current, partnerEmail: previousEmail }));
+        throw error;
+      }
     },
     updateFamilyName: async (name) => {
       const previousName = state.familyName;

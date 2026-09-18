@@ -33,7 +33,7 @@
 
 | Konteks | Copy |
 |---|---|
-| Greeting | Halo, Bapak dan Mama |
+| Greeting | Halo, Baba dan Bubu |
 | Child age | Aksa, 14 bulan |
 | Composer prompt | Ada momen kecil hari ini? |
 | Composer CTA | Tulis cerita |

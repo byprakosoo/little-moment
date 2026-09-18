@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { children as childrenTable, families, familyMembers } from "@/db/schema";
-import { getRequestUser, handleApiError } from "@/lib/api-auth";
+import { getRequestUser, handleApiError, requireFamily } from "@/lib/api-auth";
 
 export const runtime = "nodejs";
 
@@ -38,6 +38,20 @@ export async function POST(request: Request) {
       await tx.insert(childrenTable).values({ id: childId, familyId, nickname: nickname.trim(), birthDate, createdAt: now, updatedAt: now });
     });
     return NextResponse.json({ familyId, childId }, { status: 201 });
+  } catch (error) {
+    return handleApiError(error);
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const context = await requireFamily(request);
+    if ("response" in context) return context.response;
+    const body = await request.json() as { name?: string };
+    const name = body.name?.trim() || "";
+    if (name.length < 2 || name.length > 160) return NextResponse.json({ error: "Nama keluarga harus 2–160 karakter" }, { status: 400 });
+    await db.update(families).set({ name, updatedAt: new Date() }).where(eq(families.id, context.membership.familyId));
+    return NextResponse.json({ name });
   } catch (error) {
     return handleApiError(error);
   }

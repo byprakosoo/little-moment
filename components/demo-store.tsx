@@ -27,6 +27,7 @@ export type Entry = {
 
 type DemoState = {
   session: boolean;
+  familyName: string;
   child: { id?: string; nickname: string; birthDate: string } | null;
   partnerEmail: string;
   entries: Entry[];
@@ -39,6 +40,7 @@ const isoDate = (value: Date) => value.toISOString().slice(0, 10);
 
 const defaultState: DemoState = {
   session: false,
+  familyName: "Keluarga Prakoso",
   child: { id: "child-1", nickname: "Aksa", birthDate: "2025-01-12" },
   partnerEmail: "mama@example.com",
   entries: [
@@ -74,6 +76,7 @@ type DemoContextValue = DemoState & {
   signIn: () => void;
   saveChild: (nickname: string, birthDate: string) => void;
   invitePartner: (email: string) => void;
+  updateFamilyName: (name: string) => Promise<void>;
   saveEntry: (entry: Omit<Entry, "id" | "updatedAt"> & { id?: string }) => Promise<Entry>;
   deleteEntry: (id: string) => void;
   setForcedState: (state: DemoState["forcedState"]) => void;
@@ -85,7 +88,7 @@ const DemoContext = createContext<DemoContextValue | null>(null);
 const STORAGE_KEY = "little-moment-prototype-v1";
 const API_MODE = process.env.NEXT_PUBLIC_BACKEND_MODE === "api";
 const initialState: DemoState = API_MODE
-  ? { ...defaultState, child: null, partnerEmail: "", entries: [] }
+  ? { ...defaultState, familyName: "", child: null, partnerEmail: "", entries: [] }
   : defaultState;
 
 async function apiRequest(path: string, init?: RequestInit) {
@@ -104,7 +107,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       fetch("/api/bootstrap", { credentials: "include" }).then(async (response) => {
         if (!response.ok) return;
         const payload = await response.json();
-        setState((current) => ({ ...current, child: payload.child ? { id: payload.child.id, nickname: payload.child.nickname, birthDate: payload.child.birthDate } : null, entries: (payload.entries || current.entries).map((entry: Entry) => ({ ...entry, photos: entry.photos.map((photo) => ({ ...photo, dataUrl: photo.previewUrl })) })), partnerEmail: payload.members?.find((member: { role: string }) => member.role === "member")?.displayName || current.partnerEmail, session: true }));
+        setState((current) => ({ ...current, familyName: payload.family?.name || current.familyName, child: payload.child ? { id: payload.child.id, nickname: payload.child.nickname, birthDate: payload.child.birthDate } : null, entries: (payload.entries || current.entries).map((entry: Entry) => ({ ...entry, photos: entry.photos.map((photo) => ({ ...photo, dataUrl: photo.previewUrl })) })), partnerEmail: payload.members?.find((member: { role: string }) => member.role === "member")?.displayName || current.partnerEmail, session: true }));
       }).catch(() => undefined);
       setHydrated(true);
       return;
@@ -138,6 +141,17 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     invitePartner: (partnerEmail) => {
       setState((current) => ({ ...current, partnerEmail }));
       void apiRequest("/api/invites", { method: "POST", body: JSON.stringify({ email: partnerEmail }) }).catch(() => undefined);
+    },
+    updateFamilyName: async (name) => {
+      const previousName = state.familyName;
+      setState((current) => ({ ...current, familyName: name }));
+      if (!API_MODE) return;
+      try {
+        await apiRequest("/api/families", { method: "PATCH", body: JSON.stringify({ name }) });
+      } catch (error) {
+        setState((current) => ({ ...current, familyName: previousName }));
+        throw error;
+      }
     },
     saveEntry: async (input) => {
       const entry: Entry = {

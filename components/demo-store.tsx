@@ -52,7 +52,7 @@ const defaultState: DemoState = {
       title: "Langkah pertamanya",
       body: "Hari ini Aksa berdiri sendiri untuk pertama kali. Kita semua langsung bersorak.",
       happenedAt: isoDate(new Date(today.getTime() - 86400000)),
-      author: "Bapak",
+      author: "Baba",
       photos: [
         { id: "photo-1", label: "Aksa berdiri", status: "uploaded" },
         { id: "photo-2", label: "Tangan kecil Aksa", status: "uploaded" },
@@ -65,7 +65,7 @@ const defaultState: DemoState = {
       title: "",
       body: "Pagi ini Aksa tertawa waktu dengar suara air. Suaranya bikin dapur terasa ramai.",
       happenedAt: isoDate(today),
-      author: "Mama",
+      author: "Bubu",
       photos: [],
       updatedAt: "07.48",
     },

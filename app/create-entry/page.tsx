@@ -26,7 +26,7 @@ export default function CreateEntryPage() {
     setBodyError(""); setSaving(true);
     const normalizedPhotos = forcedState === "storage-full" ? [] : forcedState === "upload-error" ? photos.map((photo, index) => index === photos.length - 1 ? { ...photo, status: "error" as const } : photo) : photos;
     try {
-      const entry = await saveEntry({ id: editId ?? undefined, type, title: title.trim(), body: body.trim(), happenedAt: date, author: "Bapak", photos: normalizedPhotos });
+      const entry = await saveEntry({ id: editId ?? undefined, type, title: title.trim(), body: body.trim(), happenedAt: date, author: "Baba", photos: normalizedPhotos });
       setSaving(false);
       router.replace(`/entry/${entry.id}`);
     } catch (error) {

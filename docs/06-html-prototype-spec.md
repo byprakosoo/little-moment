@@ -49,8 +49,8 @@ Jika prototype diletakkan langsung di root project, pertahankan nama file screen
   family: { id: "family-1", name: "Keluarga Prakoso" },
   child: { id: "child-1", nickname: "Aksa", birthDate: "2025-01-12" },
   members: [
-    { id: "demo-user", name: "Bapak", role: "owner", inviteStatus: "accepted" },
-    { id: "partner-1", name: "Mama", role: "member", inviteStatus: "pending" }
+    { id: "demo-user", name: "Baba", role: "owner", inviteStatus: "accepted" },
+    { id: "partner-1", name: "Bubu", role: "member", inviteStatus: "pending" }
   ],
   entries: [],
   storage: { usedBytes: 1480000000, quotaBytes: 8589934592 },

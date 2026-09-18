@@ -19,14 +19,18 @@ export default function InvitePage() {
   const [accepted, setAccepted] = useState(false);
 
   useEffect(() => {
-    setToken(new URLSearchParams(window.location.search).get("token") || "");
+    const nextToken = new URLSearchParams(window.location.search).get("token") || "";
+    setToken(nextToken);
+    if (!nextToken) setError("Tautan undangan tidak lengkap.");
   }, []);
 
   useEffect(() => {
-    if (!token) { setError("Tautan undangan tidak lengkap."); return; }
+    if (!token) return;
+    setError("");
     fetch(`/api/invites/${encodeURIComponent(token)}`).then(async (response) => {
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw new Error(payload?.error || "Undangan tidak valid.");
+      setError("");
       setDetails(payload);
     }).catch((requestError) => setError(requestError instanceof Error ? requestError.message : "Undangan tidak valid."));
   }, [token]);

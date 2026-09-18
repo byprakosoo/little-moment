@@ -1,8 +1,8 @@
 "use client";
 
 import { ArrowRight, LockKey } from "@phosphor-icons/react";
-import { useState } from "react";
-import { Button, LogoLockup } from "@/components/little-moment";
+import { useEffect, useState } from "react";
+import { Button, LogoLockup, PageLoading } from "@/components/little-moment";
 import { authClient } from "@/lib/auth-client";
 
 export default function SignInPage() {
@@ -13,9 +13,28 @@ export default function SignInPage() {
   const [name, setName] = useState("");
   const [isRegister, setIsRegister] = useState(false);
   const apiMode = process.env.NEXT_PUBLIC_BACKEND_MODE === "api";
+  const { data: session, isPending: sessionPending } = authClient.useSession();
   const googleEnabled = apiMode && process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true";
   const inviteToken = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("invite") : null;
   const postAuthPath = inviteToken ? `/invite?token=${encodeURIComponent(inviteToken)}` : "/onboarding";
+  const activeSessionPath = inviteToken ? postAuthPath : "/timeline";
+  const hasActiveSession = apiMode && !sessionPending && Boolean(session?.user);
+
+  useEffect(() => {
+    if (!hasActiveSession) return;
+    // Keep invitation links in the invitation flow so the existing session
+    // can accept the family membership before opening the shared timeline.
+    window.location.replace(activeSessionPath);
+  }, [activeSessionPath, hasActiveSession]);
+
+  if (apiMode && sessionPending) {
+    return <div className="auth-page"><main className="auth-content" id="main-content"><PageLoading label="Memeriksa sesi..." /></main></div>;
+  }
+
+  if (hasActiveSession) {
+    return <div className="auth-page"><main className="auth-content" id="main-content"><PageLoading label="Membuka timeline..." /></main></div>;
+  }
+
   const handleSignIn = () => {
     setError("");
     if (!apiMode) {

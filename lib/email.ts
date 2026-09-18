@@ -10,9 +10,11 @@ function escapeHtml(value: string) {
 }
 
 export async function sendFamilyInviteEmail({ to, familyName, inviterName, inviteUrl }: FamilyInviteEmail) {
-  const smtpUser = process.env.GMAIL_USER || process.env.SMTP_USER;
-  const smtpPassword = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASSWORD;
-  const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
+  const smtpUser = (process.env.GMAIL_USER || process.env.SMTP_USER || "").trim();
+  // Google displays app passwords grouped with spaces. Gmail expects the
+  // underlying 16-character value without whitespace.
+  const smtpPassword = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASSWORD || "").replace(/\s/g, "").trim();
+  const smtpHost = (process.env.SMTP_HOST || "smtp.gmail.com").trim();
   const smtpPort = Number(process.env.SMTP_PORT || 465);
   if (!smtpUser || !smtpPassword) throw new Error("Email invitation belum dikonfigurasi. Tambahkan GMAIL_USER dan GMAIL_APP_PASSWORD.");
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Sparkle } from "@phosphor-icons/react";
+import { Sparkle } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { EntryType, useDemo } from "@/components/demo-store";
@@ -31,5 +31,5 @@ export default function TimelinePage() {
   if (apiMode && (!hydrated || !session || !child)) {
     return <PageFrame header className="timeline-page"><PageLoading label={!hydrated ? "Memuat jurnal..." : "Menyiapkan profil keluarga..."} /></PageFrame>;
   }
-  return <PageFrame header className="timeline-page"><div className="timeline-top"><div><span className="eyebrow">{familyName || "Jurnal keluarga"}</span><h1>Halo, Baba dan Bubu</h1><p className="timeline-top__copy">Simpan satu momen kecil hari ini.</p></div><Button onClick={create}><Plus size={18} weight="bold" /> Tulis cerita</Button></div>{child && <ChildSummary nickname={child.nickname} birthDate={child.birthDate} />}{showWarning && <StorageBanner full onExport={handleExport} />}{exportStatus === "ready" && <div className="success-panel" style={{ marginTop: 16 }}><strong>Export siap diunduh</strong><span className="small">File mock sudah siap untuk direview.</span></div>}<div className="composer"><div className="composer__prompt"><Sparkle size={20} weight="duotone" />Ada momen kecil hari ini?</div><Button variant="secondary" onClick={create}>Tulis cerita</Button></div><FilterTabs value={filter} onChange={setFilter} />{visibleEntries.length === 0 ? <div className="timeline-list"><EmptyState onCreate={create} /></div> : <div className="timeline-list">{visibleEntries.map((entry) => <EntryCard key={entry.id} entry={entry} />)}</div>}{toast && <Toast>{toast}</Toast>}</PageFrame>;
+  return <PageFrame header className="timeline-page"><div className="timeline-top"><div><span className="eyebrow">{familyName || "Jurnal keluarga"}</span><h1>Halo, Baba dan Bubu</h1><p className="timeline-top__copy">Simpan satu momen kecil hari ini.</p></div></div>{child && <ChildSummary nickname={child.nickname} birthDate={child.birthDate} />}{showWarning && <StorageBanner full onExport={handleExport} />}{exportStatus === "ready" && <div className="success-panel" style={{ marginTop: 16 }}><strong>Export siap diunduh</strong><span className="small">File mock sudah siap untuk direview.</span></div>}<div className="composer"><div className="composer__prompt"><Sparkle size={20} weight="duotone" />Ada momen kecil hari ini?</div><Button variant="secondary" onClick={create}>Tulis cerita</Button></div><FilterTabs value={filter} onChange={setFilter} />{visibleEntries.length === 0 ? <div className="timeline-list"><EmptyState onCreate={create} /></div> : <div className="timeline-list">{visibleEntries.map((entry) => <EntryCard key={entry.id} entry={entry} />)}</div>}{toast && <Toast>{toast}</Toast>}</PageFrame>;
 }

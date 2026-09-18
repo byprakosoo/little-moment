@@ -120,10 +120,9 @@ export function StorageBanner({ full = false, onExport }: { full?: boolean; onEx
 }
 
 export function EntryCard({ entry }: { entry: Entry }) {
-  const date = new Date(`${entry.happenedAt}T12:00:00`);
   return <Link href={`/entry/${entry.id}`} className="entry-card">
-    <div className="entry-card__meta"><span>{date.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" })}</span><span className={`type-pill type-pill--${entry.type}`}>{entry.type === "milestone" ? "Milestone" : "Cerita harian"}</span></div>
-    <div className="entry-card__body"><div className="entry-card__copy">{entry.title && <h3>{entry.title}</h3>}<p>{entry.body}</p><span className="entry-card__author">{entry.author} · {entry.updatedAt}</span></div>{entry.photos.length > 0 && <div className={`entry-card__gallery entry-card__gallery--${Math.min(entry.photos.length, 3)}`}>{entry.photos.slice(0, 3).map((photo, index) => <PhotoPlaceholder key={photo.id} photo={photo} index={index} />)}{entry.photos.length > 3 && <span className="gallery-count">+{entry.photos.length - 3}</span>}</div>}</div>
+    <div className="entry-card__meta"><span>{formatJournalDate(entry.happenedAt)}</span><span className={`type-pill type-pill--${entry.type}`}>{entry.type === "milestone" ? "Milestone" : "Cerita harian"}</span></div>
+    <div className="entry-card__body"><div className="entry-card__copy">{entry.title && <h3>{entry.title}</h3>}<p>{entry.body}</p><span className="entry-card__author">{entry.author} · {formatJournalTime(entry.updatedAt)}</span></div>{entry.photos.length > 0 && <div className={`entry-card__gallery entry-card__gallery--${Math.min(entry.photos.length, 3)}`}>{entry.photos.slice(0, 3).map((photo, index) => <PhotoPlaceholder key={photo.id} photo={photo} index={index} />)}{entry.photos.length > 3 && <span className="gallery-count">+{entry.photos.length - 3}</span>}</div>}</div>
   </Link>;
 }
 
@@ -203,6 +202,32 @@ export function DeleteDialog({ onCancel, onConfirm }: { onCancel: () => void; on
 export function Toast({ children }: { children: React.ReactNode }) { return <div className="toast" role="status"><Check size={16} weight="bold" />{children}</div>; }
 
 export function formatStorage() { return { used: "1,38 GB", quota: "8 GB", percent: 16.1 }; }
+
+const journalDateFormatter = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" });
+const journalHeaderDateFormatter = new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" });
+const journalTimeFormatter = new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Jakarta" });
+
+export function formatJournalDate(value: string) {
+  const date = new Date(`${value}T12:00:00+07:00`);
+  return Number.isNaN(date.getTime()) ? value : journalDateFormatter.format(date);
+}
+
+export function formatJournalHeaderDate(value: string) {
+  const date = new Date(`${value}T12:00:00+07:00`);
+  return Number.isNaN(date.getTime()) ? value : journalHeaderDateFormatter.format(date);
+}
+
+export function formatJournalTime(value: string) {
+  if (/^\d{1,2}[:.]\d{2}$/.test(value)) return value.replace(":", ".");
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : journalTimeFormatter.format(date);
+}
+
+export function formatJournalDateTime(happenedAt: string, updatedAt: string) {
+  const updatedDate = new Date(updatedAt);
+  const date = Number.isNaN(updatedDate.getTime()) ? formatJournalDate(happenedAt) : journalDateFormatter.format(updatedDate);
+  return `${date}, ${formatJournalTime(updatedAt)}`;
+}
 
 export function useEntry(id: string) { const { entries } = useDemo(); return entries.find((entry) => entry.id === id); }
 

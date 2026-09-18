@@ -1,13 +1,11 @@
 "use client";
 
 import { ArrowRight, LockKey } from "@phosphor-icons/react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, LogoLockup } from "@/components/little-moment";
 import { authClient } from "@/lib/auth-client";
 
 export default function SignInPage() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
@@ -49,7 +47,9 @@ export default function SignInPage() {
         setError(result.error.message || "Email atau password belum benar.");
         return;
       }
-      router.push(postAuthPath);
+      // Remount the provider before rendering the next page so it fetches the
+      // authenticated bootstrap payload exactly once instead of showing stale state.
+      window.location.assign(postAuthPath);
     } catch {
       setError("Kami belum bisa menyelesaikan proses masuk. Coba lagi.");
     } finally {

@@ -85,6 +85,10 @@ export function PageFrame({ children, header = false, className = "" }: { childr
   return <><SkipLink />{header && <AppHeader />}<main id="main-content" className={`page-frame ${className}`}>{children}</main></>;
 }
 
+export function PageLoading({ label = "Memuat jurnal..." }: { label?: string }) {
+  return <div className="page-loading" role="status" aria-live="polite"><CircleNotch className="spin" size={22} /><span>{label}</span></div>;
+}
+
 export function StepLabel({ current, total = 3 }: { current: number; total?: number }) {
   return <div className="step-label"><span>Langkah {current} dari {total}</span><span className="step-label__line"><span style={{ width: `${(current / total) * 100}%` }} /></span></div>;
 }

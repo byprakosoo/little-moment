@@ -73,6 +73,7 @@ const defaultState: DemoState = {
 };
 
 type DemoContextValue = DemoState & {
+  hydrated: boolean;
   signIn: () => void;
   saveChild: (nickname: string, birthDate: string) => void;
   invitePartner: (email: string) => Promise<void>;
@@ -105,11 +106,13 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (API_MODE) {
       fetch("/api/bootstrap", { credentials: "include" }).then(async (response) => {
-        if (!response.ok) return;
+        if (response.status === 401) return;
+        if (!response.ok) throw new Error(`Bootstrap failed: ${response.status}`);
         const payload = await response.json();
         setState((current) => ({ ...current, familyName: payload.family?.name || current.familyName, child: payload.child ? { id: payload.child.id, nickname: payload.child.nickname, birthDate: payload.child.birthDate } : null, entries: (payload.entries || current.entries).map((entry: Entry) => ({ ...entry, photos: entry.photos.map((photo) => ({ ...photo, dataUrl: photo.previewUrl })) })), partnerEmail: payload.members?.find((member: { role: string }) => member.role === "member")?.displayName || current.partnerEmail, session: true }));
-      }).catch(() => undefined);
-      setHydrated(true);
+      }).catch(() => {
+        setState((current) => ({ ...current, session: false }));
+      }).finally(() => setHydrated(true));
       return;
     }
     const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -129,6 +132,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<DemoContextValue>(() => ({
     ...state,
+    hydrated,
     signIn: () => setState((current) => ({ ...current, session: true })),
     saveChild: (nickname, birthDate) => {
       setState((current) => ({ ...current, child: { nickname, birthDate } }));
@@ -200,7 +204,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       setState(initialState);
       if (!API_MODE) window.localStorage.removeItem(STORAGE_KEY);
     },
-  }), [state]);
+  }), [state, hydrated]);
 
   return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>;
 }

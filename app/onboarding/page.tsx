@@ -8,7 +8,7 @@ import { useDemo } from "@/components/demo-store";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { child, saveChild } = useDemo();
+  const { child, saveChild, hydrated, session } = useDemo();
   const apiMode = process.env.NEXT_PUBLIC_BACKEND_MODE === "api";
   const [checkingProfile, setCheckingProfile] = useState(apiMode);
   const [nickname, setNickname] = useState(child?.nickname ?? "");
@@ -16,29 +16,17 @@ export default function OnboardingPage() {
   const [errors, setErrors] = useState<{ nickname?: string; birthDate?: string }>({});
 
   useEffect(() => {
-    if (!apiMode) return;
-    let active = true;
-    fetch("/api/bootstrap", { credentials: "include" })
-      .then(async (response) => {
-        if (!active) return;
-        if (response.status === 401) {
-          router.replace("/signin");
-          return;
-        }
-        if (response.ok) {
-          const payload = await response.json() as { child?: { nickname: string; birthDate: string } | null };
-          if (payload.child) {
-            router.replace("/timeline");
-            return;
-          }
-        }
-        setCheckingProfile(false);
-      })
-      .catch(() => {
-        if (active) setCheckingProfile(false);
-      });
-    return () => { active = false; };
-  }, [apiMode, router]);
+    if (!apiMode || !hydrated) return;
+    if (!session) {
+      router.replace("/signin");
+      return;
+    }
+    if (child) {
+      router.replace("/timeline");
+      return;
+    }
+    setCheckingProfile(false);
+  }, [apiMode, hydrated, session, child, router]);
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();

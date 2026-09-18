@@ -123,7 +123,7 @@ export function EntryCard({ entry }: { entry: Entry }) {
   const date = new Date(`${entry.happenedAt}T12:00:00`);
   return <Link href={`/entry/${entry.id}`} className="entry-card">
     <div className="entry-card__meta"><span>{date.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" })}</span><span className={`type-pill type-pill--${entry.type}`}>{entry.type === "milestone" ? "Milestone" : "Cerita harian"}</span></div>
-    <div className="entry-card__body"><div className="entry-card__copy">{entry.title && <h3>{entry.title}</h3>}<p>{entry.body}</p><span className="entry-card__author">{entry.author} · {entry.updatedAt}</span></div>{entry.photos.length > 0 && <div className="entry-card__gallery">{entry.photos.slice(0, 3).map((photo, index) => <PhotoPlaceholder key={photo.id} photo={photo} index={index} />)}{entry.photos.length > 3 && <span className="gallery-count">+{entry.photos.length - 3}</span>}</div>}</div>
+    <div className="entry-card__body"><div className="entry-card__copy">{entry.title && <h3>{entry.title}</h3>}<p>{entry.body}</p><span className="entry-card__author">{entry.author} · {entry.updatedAt}</span></div>{entry.photos.length > 0 && <div className={`entry-card__gallery entry-card__gallery--${Math.min(entry.photos.length, 3)}`}>{entry.photos.slice(0, 3).map((photo, index) => <PhotoPlaceholder key={photo.id} photo={photo} index={index} />)}{entry.photos.length > 3 && <span className="gallery-count">+{entry.photos.length - 3}</span>}</div>}</div>
   </Link>;
 }
 

@@ -14,6 +14,19 @@ export const auth = betterAuth({
   trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3010"],
   socialProviders,
   emailAndPassword: { enabled: true },
-  session: { expiresIn: 60 * 60 * 24 * 30, updateAge: 60 * 60 * 24 },
+  session: {
+    // Keep the primary session cookie valid for 30 days so returning users do
+    // not need to authenticate every time they reopen the app.
+    expiresIn: 60 * 60 * 24 * 30,
+    updateAge: 60 * 60 * 24,
+    // Cache the signed/encrypted session payload for five minutes. The family
+    // membership is still checked from MySQL by every family API route.
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 5,
+      strategy: "jwe",
+      refreshCache: true,
+    },
+  },
   advanced: { useSecureCookies: process.env.NODE_ENV === "production" },
 });

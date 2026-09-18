@@ -96,7 +96,7 @@ const initialState: DemoState = API_MODE
 
 async function apiRequest(path: string, init?: RequestInit) {
   if (!API_MODE) return null;
-  const response = await fetch(path, { ...init, headers: { "Content-Type": "application/json", ...(init?.headers || {}) } });
+  const response = await fetch(path, { ...init, credentials: "include", headers: { "Content-Type": "application/json", ...(init?.headers || {}) } });
   if (!response.ok) throw new Error((await response.json().catch(() => null))?.error || `Request failed: ${response.status}`);
   return response.json();
 }

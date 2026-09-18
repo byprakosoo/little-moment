@@ -42,7 +42,7 @@ export default function SignInPage() {
     try {
       const result = isRegister
         ? await authClient.signUp.email({ name: name.trim() || "Orang tua", email: email.trim(), password })
-        : await authClient.signIn.email({ email: email.trim(), password });
+        : await authClient.signIn.email({ email: email.trim(), password, rememberMe: true });
       if (result.error) {
         setError(result.error.message || "Email atau password belum benar.");
         return;

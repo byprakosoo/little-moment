@@ -30,6 +30,7 @@ type DemoState = {
   familyName: string;
   child: { id?: string; nickname: string; birthDate: string } | null;
   partnerEmail: string;
+  partnerStatus: "none" | "pending" | "accepted";
   entries: Entry[];
   forcedState: "empty" | "upload-error" | "storage-full" | null;
   exportStatus: "idle" | "queued" | "ready";
@@ -43,6 +44,7 @@ const defaultState: DemoState = {
   familyName: "Keluarga Prakoso",
   child: { id: "child-1", nickname: "Aksa", birthDate: "2025-01-12" },
   partnerEmail: "mama@example.com",
+  partnerStatus: "pending",
   entries: [
     {
       id: "entry-1",
@@ -109,7 +111,9 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
         if (response.status === 401) return;
         if (!response.ok) throw new Error(`Bootstrap failed: ${response.status}`);
         const payload = await response.json();
-        setState((current) => ({ ...current, familyName: payload.family?.name || current.familyName, child: payload.child ? { id: payload.child.id, nickname: payload.child.nickname, birthDate: payload.child.birthDate } : null, entries: (payload.entries || current.entries).map((entry: Entry) => ({ ...entry, photos: entry.photos.map((photo) => ({ ...photo, dataUrl: photo.previewUrl })) })), partnerEmail: payload.members?.find((member: { role: string }) => member.role === "member")?.displayName || current.partnerEmail, session: true }));
+        const partner = payload.members?.find((member: { role: string }) => member.role === "member");
+        const partnerEmail = partner?.email || payload.pendingInviteEmail || "";
+        setState((current) => ({ ...current, familyName: payload.family?.name || current.familyName, child: payload.child ? { id: payload.child.id, nickname: payload.child.nickname, birthDate: payload.child.birthDate } : null, entries: (payload.entries || current.entries).map((entry: Entry) => ({ ...entry, photos: entry.photos.map((photo) => ({ ...photo, dataUrl: photo.previewUrl })) })), partnerEmail, partnerStatus: partner ? "accepted" : payload.pendingInviteEmail ? "pending" : "none", session: true }));
       }).catch(() => {
         setState((current) => ({ ...current, session: false }));
       }).finally(() => setHydrated(true));

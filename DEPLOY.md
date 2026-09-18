@@ -123,16 +123,21 @@ NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true
 
 Better Auth menggunakan callback default `/api/auth/callback/google`; `BETTER_AUTH_URL` harus menunjuk ke domain yang sama dengan callback production.
 
-## 6. Aktifkan email undangan pasangan
+## 6. Aktifkan email undangan pasangan melalui Gmail
 
-Fitur undangan memakai Resend API. Buat API key di Resend, verifikasi domain pengirim, lalu tambahkan environment variables berikut di Vercel untuk **Production**:
+Email invitation dikirim melalui Gmail SMTP menggunakan Google App Password. Aktifkan 2-Step Verification pada akun Gmail pengirim, buat App Password khusus Little Moment, lalu tambahkan environment variables berikut di Vercel untuk **Production**:
 
 ```text
-RESEND_API_KEY=re_...
-RESEND_FROM_EMAIL=Little Moment <onboarding@domain-yang-sudah-diverifikasi.com>
+GMAIL_USER=email-pengirim@gmail.com
+GMAIL_APP_PASSWORD=16-karakter-app-password
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_USER=email-pengirim@gmail.com
+SMTP_PASSWORD=16-karakter-app-password
+SMTP_FROM_EMAIL=Little Moment <email-pengirim@gmail.com>
 ```
 
-Setelah itu redeploy. Jika variable belum diisi, aplikasi sengaja mengembalikan error dan tidak menampilkan undangan sebagai berhasil terkirim.
+`GMAIL_APP_PASSWORD` dan `SMTP_PASSWORD` disimpan sebagai Secret. Variable lainnya boleh Config. Setelah itu redeploy. Jika variable belum diisi atau Gmail menolak autentikasi, aplikasi mengembalikan error dan tidak menampilkan undangan sebagai berhasil terkirim.
 
 ## Legacy: deployment Docker di VPS
 

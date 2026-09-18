@@ -15,11 +15,13 @@
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.7.5",
     "@phosphor-icons/react": "^2.1.7",
+    "@types/nodemailer": "^8.0.2",
     "better-auth": "^1.7.5",
-    "drizzle-orm": "^0.45.2",
     "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.45.2",
     "mysql2": "^3.14.3",
     "next": "^15.5.0",
+    "nodemailer": "^10.0.10",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

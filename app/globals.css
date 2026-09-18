@@ -37,24 +37,14 @@ button:disabled { cursor: not-allowed; }
 .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 .app-header { width: min(100% - 40px, 920px); height: 72px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
 .app-header__right { display: flex; align-items: center; gap: 10px; }
-.brand-mark { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: -0.02em; }
+.brand-mark { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: -0.02em; }
 .brand-mark--compact { font-size: 18px; }
-.brand-leaf { width: 38px; height: 31px; position: relative; display: grid; place-items: center; color: white; background: transparent; }
-.brand-leaf::before, .brand-leaf::after { content: ""; position: absolute; width: 28px; height: 28px; border-radius: 50%; }
-.brand-leaf::before { left: 0; background: var(--color-accent); }
-.brand-leaf::after { right: 0; background: var(--color-accent-warm); }
-.brand-leaf svg { z-index: 1; color: var(--color-text-primary); }
-.logo-lockup { display: grid; justify-items: start; gap: 2px; }
-.logo-lockup__art { width: 84px; height: 65px; position: relative; display: block; }
-.logo-lockup__blob { position: absolute; width: 46px; height: 50px; top: 4px; border-radius: 24px 24px 24px 7px; }
-.logo-lockup__blob--teal { left: 9px; background: #2fb8b4; transform: rotate(-8deg); }
-.logo-lockup__blob--yellow { left: 38px; background: #f0bb30; transform: rotate(10deg); }
-.logo-lockup__core { position: absolute; z-index: 2; left: 30px; top: 15px; width: 35px; height: 35px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: #161c1c; }
-.logo-lockup__core svg { transform: scale(.72); }
-.logo-lockup__spark { position: absolute; z-index: 3; left: 17px; top: 22px; color: #fff; font-size: 12px; }
-.logo-lockup__wordmark { color: #0e908e; font-family: var(--font-display); font-size: 17px; font-weight: 700; line-height: 1; }
-.logo-lockup__tagline { color: #4c4949; font-size: 6px; font-weight: 800; letter-spacing: .15em; line-height: 1; }
-.logo-lockup-image { display: block; width: 150px; height: auto; object-fit: contain; }
+.brand-mark__image { width: 38px; height: 29px; display: block; flex: 0 0 auto; object-fit: contain; }
+.brand-mark--compact .brand-mark__image { width: 34px; height: 26px; }
+.logo-lockup { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; align-items: center; column-gap: 10px; }
+.logo-lockup-image { grid-row: 1 / span 2; display: block; width: 76px; height: 55px; object-fit: contain; }
+.logo-lockup__wordmark { color: var(--color-accent); font-family: var(--font-display); font-size: 22px; font-weight: 700; line-height: 1; }
+.logo-lockup__tagline { color: var(--color-text-muted); font-size: 8px; font-weight: 800; letter-spacing: .14em; line-height: 1.2; }
 .private-pill { display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border: 1px solid var(--color-border); border-radius: 999px; color: var(--color-text-secondary); font-size: 12px; font-weight: 700; background: rgb(254 255 254 / 0.72); }
 .icon-button { min-width: 44px; min-height: 44px; display: grid; place-items: center; border: 1px solid transparent; border-radius: 12px; color: var(--color-text-secondary); background: transparent; transition: all 160ms ease; }
 .icon-button:hover, .icon-button:focus-visible, .icon-button.is-active { border-color: var(--color-border); color: var(--color-accent); background: var(--color-surface); }

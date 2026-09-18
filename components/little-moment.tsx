@@ -18,7 +18,6 @@ import {
   Gear,
   ImageSquare,
   LockKey,
-  MagicWand,
   Minus,
   PencilSimple,
   Plus,
@@ -30,17 +29,21 @@ import {
 } from "@phosphor-icons/react";
 import { Entry, EntryType, Photo, useDemo } from "./demo-store";
 
-export function BrandMark({ compact = false }: { compact?: boolean }) {
+export function BrandMark({ compact = false, href = "/timeline" }: { compact?: boolean; href?: string }) {
   return (
-    <Link className={`brand-mark ${compact ? "brand-mark--compact" : ""}`} href="/timeline" aria-label="Little Moment, ke timeline">
-      <span className="brand-leaf"><MagicWand size={16} weight="duotone" /></span>
+    <Link className={`brand-mark ${compact ? "brand-mark--compact" : ""}`} href={href} aria-label={`Little Moment, ${href === "/timeline" ? "ke timeline" : "kembali ke masuk"}`}>
+      <img className="brand-mark__image" src="/little-moment.svg" alt="" />
       <span>Little Moment</span>
     </Link>
   );
 }
 
 export function LogoLockup() {
-  return <img className="logo-lockup-image" src="/little-moment-logo.jpeg" alt="Little Moment, private family journal" />;
+  return <div className="logo-lockup" role="img" aria-label="Little Moment, private family journal">
+    <img className="logo-lockup-image" src="/little-moment.svg" alt="" />
+    <span className="logo-lockup__wordmark">Little Moment</span>
+    <span className="logo-lockup__tagline">PRIVATE FAMILY JOURNAL</span>
+  </div>;
 }
 
 export function Button({

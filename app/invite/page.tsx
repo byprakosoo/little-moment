@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { ArrowRight, Check, EnvelopeSimple, LockKey } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Button, OnboardingCard, PageFrame } from "@/components/little-moment";
+import { BrandMark, Button, OnboardingCard, PageFrame } from "@/components/little-moment";
 import { authClient } from "@/lib/auth-client";
 
 type InviteDetails = { email: string; familyName: string; expiresAt: string };
@@ -49,5 +48,5 @@ export default function InvitePage() {
   }, [accepted, authSession, authSessionPending, details, error, router, token]);
 
   const signInUrl = `/signin?invite=${encodeURIComponent(token)}`;
-  return <PageFrame className="form-page"><div className="auth-content__top"><Link href="/signin" aria-label="Kembali ke masuk"><span className="brand-mark"><span className="brand-leaf">LM</span><span>Little Moment</span></span></Link><span className="private-pill"><LockKey size={14} weight="bold" /> Privat</span></div><OnboardingCard eyebrow="Undangan keluarga" title={accepted ? "Kamu sudah bergabung" : "Jurnal ini lebih lengkap berdua"}><div className="invite-note"><EnvelopeSimple size={20} weight="duotone" /><span>{details ? <>Kamu diundang ke jurnal <strong>{details.familyName}</strong> dengan email <strong>{details.email}</strong>.</> : "Memeriksa tautan undangan..."}</span></div>{accepted ? <div className="success-panel"><strong><Check size={18} weight="bold" /> Undangan diterima</strong><span className="small">Membuka timeline keluarga...</span></div> : error ? <p className="field__error" role="alert">{error}</p> : authSessionPending || authSession?.user ? <Button loading={accepting || authSessionPending} disabled>{authSessionPending ? "Memeriksa akun..." : accepting ? "Menghubungkan keluarga..." : "Undangan diterima"}</Button> : <div className="form-actions"><Button onClick={() => router.push(signInUrl)} disabled={!details}>Masuk untuk menerima <ArrowRight size={18} weight="bold" /></Button></div>}</OnboardingCard></PageFrame>;
+  return <PageFrame className="form-page"><div className="auth-content__top"><BrandMark href="/signin" /><span className="private-pill"><LockKey size={14} weight="bold" /> Privat</span></div><OnboardingCard eyebrow="Undangan keluarga" title={accepted ? "Kamu sudah bergabung" : "Jurnal ini lebih lengkap berdua"}><div className="invite-note"><EnvelopeSimple size={20} weight="duotone" /><span>{details ? <>Kamu diundang ke jurnal <strong>{details.familyName}</strong> dengan email <strong>{details.email}</strong>.</> : "Memeriksa tautan undangan..."}</span></div>{accepted ? <div className="success-panel"><strong><Check size={18} weight="bold" /> Undangan diterima</strong><span className="small">Membuka timeline keluarga...</span></div> : error ? <p className="field__error" role="alert">{error}</p> : authSessionPending || authSession?.user ? <Button loading={accepting || authSessionPending} disabled>{authSessionPending ? "Memeriksa akun..." : accepting ? "Menghubungkan keluarga..." : "Undangan diterima"}</Button> : <div className="form-actions"><Button onClick={() => router.push(signInUrl)} disabled={!details}>Masuk untuk menerima <ArrowRight size={18} weight="bold" /></Button></div>}</OnboardingCard></PageFrame>;
 }

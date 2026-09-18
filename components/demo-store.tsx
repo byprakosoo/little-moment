@@ -81,7 +81,7 @@ type DemoContextValue = DemoState & {
   invitePartner: (email: string) => Promise<void>;
   updateFamilyName: (name: string) => Promise<void>;
   saveEntry: (entry: Omit<Entry, "id" | "updatedAt"> & { id?: string }) => Promise<Entry>;
-  deleteEntry: (id: string) => void;
+  deleteEntry: (id: string) => Promise<void>;
   setForcedState: (state: DemoState["forcedState"]) => void;
   startExport: () => void;
   resetDemo: () => void;
@@ -195,9 +195,16 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
     },
-    deleteEntry: (id) => {
+    deleteEntry: async (id) => {
+      const deleted = state.entries.find((entry) => entry.id === id);
       setState((current) => ({ ...current, entries: current.entries.filter((entry) => entry.id !== id) }));
-      void apiRequest(`/api/entries/${id}`, { method: "DELETE" }).catch(() => undefined);
+      if (!API_MODE) return;
+      try {
+        await apiRequest(`/api/entries/${id}`, { method: "DELETE" });
+      } catch (error) {
+        if (deleted) setState((current) => current.entries.some((entry) => entry.id === id) ? current : { ...current, entries: [deleted, ...current.entries] });
+        throw error;
+      }
     },
     setForcedState: (forcedState) => setState((current) => ({ ...current, forcedState })),
     startExport: () => {

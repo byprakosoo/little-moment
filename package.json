@@ -2,6 +2,7 @@
   "name": "little-moment",
   "version": "0.1.0",
   "private": false,
+  "license": "MIT",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

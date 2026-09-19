@@ -50,7 +50,10 @@ Open `http://localhost:3010`. To make the mode explicit, use `NEXT_PUBLIC_BACKEN
 3. Apply the schema and start the app:
 
    ```bash
+   # Database baru:
    npm run db:push
+   # Jika database sudah pernah dipakai, gunakan migrasi:
+   # npm run db:migrate
    npm run dev
    ```
 

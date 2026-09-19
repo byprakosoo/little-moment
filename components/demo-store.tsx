@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { authClient } from "@/lib/auth-client";
 
 export type PhotoStatus = "uploaded" | "ready" | "error";
 export type EntryType = "story" | "milestone";
@@ -27,6 +28,7 @@ export type Entry = {
 
 type DemoState = {
   session: boolean;
+  membershipRole: "owner" | "member" | null;
   familyName: string;
   child: { id?: string; nickname: string; birthDate: string } | null;
   partnerEmail: string;
@@ -41,6 +43,7 @@ const isoDate = (value: Date) => value.toISOString().slice(0, 10);
 
 const defaultState: DemoState = {
   session: false,
+  membershipRole: "owner",
   familyName: "Keluarga Prakoso",
   child: { id: "child-1", nickname: "Aksa", birthDate: "2025-01-12" },
   partnerEmail: "mama@example.com",
@@ -85,13 +88,15 @@ type DemoContextValue = DemoState & {
   setForcedState: (state: DemoState["forcedState"]) => void;
   startExport: () => void;
   resetDemo: () => void;
+  signOut: () => Promise<void>;
+  leaveFamily: () => Promise<void>;
 };
 
 const DemoContext = createContext<DemoContextValue | null>(null);
 const STORAGE_KEY = "little-moment-prototype-v1";
 const API_MODE = process.env.NEXT_PUBLIC_BACKEND_MODE === "api";
 const initialState: DemoState = API_MODE
-  ? { ...defaultState, familyName: "", child: null, partnerEmail: "", entries: [] }
+  ? { ...defaultState, familyName: "", child: null, partnerEmail: "", entries: [], membershipRole: null }
   : defaultState;
 
 async function apiRequest(path: string, init?: RequestInit) {
@@ -111,9 +116,10 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
         if (response.status === 401) return;
         if (!response.ok) throw new Error(`Bootstrap failed: ${response.status}`);
         const payload = await response.json();
+        const currentMember = payload.members?.find((member: { userId: string; role: string }) => member.userId === payload.currentUserId);
         const partner = payload.members?.find((member: { role: string }) => member.role === "member");
         const partnerEmail = partner?.email || payload.pendingInviteEmail || "";
-        setState((current) => ({ ...current, familyName: payload.family?.name || current.familyName, child: payload.child ? { id: payload.child.id, nickname: payload.child.nickname, birthDate: payload.child.birthDate } : null, entries: (payload.entries || current.entries).map((entry: Entry) => ({ ...entry, photos: entry.photos.map((photo) => ({ ...photo, dataUrl: photo.previewUrl })) })), partnerEmail, partnerStatus: partner ? "accepted" : payload.pendingInviteEmail ? "pending" : "none", session: true }));
+        setState((current) => ({ ...current, familyName: payload.family?.name || current.familyName, child: payload.child ? { id: payload.child.id, nickname: payload.child.nickname, birthDate: payload.child.birthDate } : null, entries: (payload.entries || current.entries).map((entry: Entry) => ({ ...entry, photos: entry.photos.map((photo) => ({ ...photo, dataUrl: photo.previewUrl })) })), partnerEmail, partnerStatus: partner ? "accepted" : payload.pendingInviteEmail ? "pending" : "none", membershipRole: currentMember?.role === "owner" ? "owner" : "member", session: true }));
       }).catch(() => {
         setState((current) => ({ ...current, session: false }));
       }).finally(() => setHydrated(true));
@@ -212,6 +218,16 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       window.setTimeout(() => setState((current) => ({ ...current, exportStatus: "ready" })), 1100);
     },
     resetDemo: () => {
+      setState(initialState);
+      if (!API_MODE) window.localStorage.removeItem(STORAGE_KEY);
+    },
+    signOut: async () => {
+      if (API_MODE) await authClient.signOut();
+      setState(initialState);
+      if (!API_MODE) window.localStorage.removeItem(STORAGE_KEY);
+    },
+    leaveFamily: async () => {
+      if (API_MODE) await apiRequest("/api/families", { method: "DELETE" });
       setState(initialState);
       if (!API_MODE) window.localStorage.removeItem(STORAGE_KEY);
     },

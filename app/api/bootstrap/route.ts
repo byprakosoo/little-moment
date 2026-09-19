@@ -22,7 +22,7 @@ export async function GET(request: Request) {
       if (row.photo) current.photos.push({ id: row.photo.id, label: row.photo.altText || `Foto dari cerita tanggal ${row.entry.happenedAt}`, status: row.photo.status as "uploaded" | "ready" | "error", previewUrl: row.photo.dataUrl || undefined });
       grouped.set(row.entry.id, current);
     }
-    return NextResponse.json({ family, child, members, pendingInviteEmail: pendingInvite?.email || null, entries: [...grouped.values()] });
+    return NextResponse.json({ currentUserId: context.user.id, family, child, members, pendingInviteEmail: pendingInvite?.email || null, entries: [...grouped.values()] });
   } catch (error) {
     return handleApiError(error);
   }

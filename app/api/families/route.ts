@@ -56,3 +56,17 @@ export async function PATCH(request: Request) {
     return handleApiError(error);
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const context = await requireFamily(request);
+    if ("response" in context) return context.response;
+    if (context.membership.role === "owner") {
+      return NextResponse.json({ error: "Pemilik jurnal tidak bisa keluar. Transfer kepemilikan atau hapus jurnal terlebih dahulu." }, { status: 409 });
+    }
+    await db.delete(familyMembers).where(eq(familyMembers.id, context.membership.id));
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return handleApiError(error);
+  }
+}

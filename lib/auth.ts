@@ -20,12 +20,12 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 30,
     updateAge: 60 * 60 * 24,
     // Cache the signed/encrypted session payload for five minutes. The family
-    // membership is still checked from MySQL by every family API route.
+    // membership is still checked from MySQL by every family API route. Do not
+    // enable refreshCache here: Better Auth reserves it for stateless setups.
     cookieCache: {
       enabled: true,
       maxAge: 60 * 5,
       strategy: "jwe",
-      refreshCache: true,
     },
   },
   advanced: { useSecureCookies: process.env.NODE_ENV === "production" },

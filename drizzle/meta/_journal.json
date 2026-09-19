@@ -15,6 +15,13 @@
       "when": 1789639549571,
       "tag": "0001_add-photo-data-url",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1789824442225,
+      "tag": "0002_old_microchip",
+      "breakpoints": true
     }
   ]
 }

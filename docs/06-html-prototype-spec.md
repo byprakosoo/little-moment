@@ -46,8 +46,8 @@ Jika prototype diletakkan langsung di root project, pertahankan nama file screen
 ```js
 {
   session: { userId: "demo-user", status: "authenticated" },
-  family: { id: "family-1", name: "Keluarga Prakoso" },
-  child: { id: "child-1", nickname: "Aksa", birthDate: "2025-01-12" },
+  family: { id: "family-1", name: "Keluarga Kecil", ownerLabel: "Baba", memberLabel: "Bubu" },
+  child: { id: "child-1", nickname: "Si Kecil", birthDate: "2025-01-12" },
   members: [
     { id: "demo-user", name: "Baba", role: "owner", inviteStatus: "accepted" },
     { id: "partner-1", name: "Bubu", role: "member", inviteStatus: "pending" }
@@ -69,7 +69,7 @@ Jika prototype diletakkan langsung di root project, pertahankan nama file screen
   authorId: "demo-user",
   type: "story",
   title: "Langkah pertamanya",
-  body: "Hari ini Aksa berdiri sendiri untuk pertama kali.",
+  body: "Hari ini Si Kecil berdiri sendiri untuk pertama kali.",
   happenedAt: "2026-09-17",
   createdAt: "2026-09-17T09:00:00+07:00",
   updatedAt: "2026-09-17T09:00:00+07:00",

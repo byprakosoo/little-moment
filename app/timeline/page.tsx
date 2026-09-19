@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { EntryType, useDemo } from "@/components/demo-store";
 import { Button, EmptyState, EntryCard, PageFrame, PageLoading, StorageBanner, Toast, Avatar } from "@/components/little-moment";
+import { appCopy } from "@/lib/app-config";
 
 function ChildSummary({ nickname, birthDate }: { nickname: string; birthDate: string }) {
   const months = Math.max(0, Math.floor((Date.now() - new Date(`${birthDate}T12:00:00`).getTime()) / (1000 * 60 * 60 * 24 * 30.44)));
@@ -17,7 +18,7 @@ function FilteredEmptyState({ onClear }: { onClear: () => void }) {
 
 export default function TimelinePage() {
   const router = useRouter();
-  const { familyName, child, entries, forcedState, startExport, exportStatus, hydrated, session } = useDemo();
+  const { familyName, ownerLabel, memberLabel, child, entries, forcedState, startExport, exportStatus, hydrated, session } = useDemo();
   const apiMode = process.env.NEXT_PUBLIC_BACKEND_MODE === "api";
   const [filter, setFilter] = useState<"all" | EntryType>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -79,7 +80,7 @@ export default function TimelinePage() {
   }
   return <PageFrame header className="timeline-page">
     <div className="timeline-intro">
-      <div className="timeline-top"><div><span className="eyebrow">{familyName || "Jurnal keluarga"}</span><h1>Halo, Baba dan Bubu</h1><p className="timeline-top__copy">Simpan satu momen kecil hari ini.</p></div></div>
+      <div className="timeline-top"><div><span className="eyebrow">{familyName || "Jurnal keluarga"}</span><h1>{appCopy.timelineGreeting(ownerLabel, memberLabel)}</h1><p className="timeline-top__copy">{appCopy.timelinePrompt}</p></div></div>
       {child && <ChildSummary nickname={child.nickname} birthDate={child.birthDate} />}
     </div>
     {showWarning && <StorageBanner full onExport={handleExport} />}

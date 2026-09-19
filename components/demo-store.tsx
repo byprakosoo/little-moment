@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { DEFAULT_CHILD_NAME, DEFAULT_FAMILY_NAME, DEFAULT_ROLE_LABELS } from "@/lib/app-config";
 
 export type PhotoStatus = "uploaded" | "ready" | "error";
 export type EntryType = "story" | "milestone";
@@ -30,6 +31,8 @@ type DemoState = {
   session: boolean;
   membershipRole: "owner" | "member" | null;
   familyName: string;
+  ownerLabel: string;
+  memberLabel: string;
   child: { id?: string; nickname: string; birthDate: string } | null;
   ownerEmail: string;
   partnerEmail: string;
@@ -45,22 +48,24 @@ const isoDate = (value: Date) => value.toISOString().slice(0, 10);
 const defaultState: DemoState = {
   session: false,
   membershipRole: "owner",
-  familyName: "Keluarga Prakoso",
-  child: { id: "child-1", nickname: "Aksa", birthDate: "2025-01-12" },
+  familyName: DEFAULT_FAMILY_NAME,
+  ownerLabel: DEFAULT_ROLE_LABELS.owner,
+  memberLabel: DEFAULT_ROLE_LABELS.member,
+  child: { id: "child-1", nickname: DEFAULT_CHILD_NAME, birthDate: "2025-01-12" },
   ownerEmail: "",
-  partnerEmail: "mama@example.com",
+  partnerEmail: "pasangan@example.com",
   partnerStatus: "pending",
   entries: [
     {
       id: "entry-1",
       type: "milestone",
       title: "Langkah pertamanya",
-      body: "Hari ini Aksa berdiri sendiri untuk pertama kali. Kita semua langsung bersorak.",
+      body: "Hari ini Si Kecil berdiri sendiri untuk pertama kali. Kita semua langsung bersorak.",
       happenedAt: isoDate(new Date(today.getTime() - 86400000)),
-      author: "Baba",
+      author: DEFAULT_ROLE_LABELS.owner,
       photos: [
-        { id: "photo-1", label: "Aksa berdiri", status: "uploaded" },
-        { id: "photo-2", label: "Tangan kecil Aksa", status: "uploaded" },
+        { id: "photo-1", label: "Si Kecil berdiri", status: "uploaded" },
+        { id: "photo-2", label: "Tangan kecil", status: "uploaded" },
       ],
       updatedAt: "09.12",
     },
@@ -68,9 +73,9 @@ const defaultState: DemoState = {
       id: "entry-2",
       type: "story",
       title: "",
-      body: "Pagi ini Aksa tertawa waktu dengar suara air. Suaranya bikin dapur terasa ramai.",
+      body: "Pagi ini Si Kecil tertawa waktu dengar suara air. Suaranya bikin dapur terasa ramai.",
       happenedAt: isoDate(today),
-      author: "Bubu",
+      author: DEFAULT_ROLE_LABELS.member,
       photos: [],
       updatedAt: "07.48",
     },
@@ -85,6 +90,7 @@ type DemoContextValue = DemoState & {
   saveChild: (nickname: string, birthDate: string) => void;
   invitePartner: (email: string) => Promise<void>;
   updateFamilyName: (name: string) => Promise<void>;
+  updateFamilyProfile: (profile: { name: string; ownerLabel: string; memberLabel: string }) => Promise<void>;
   saveEntry: (entry: Omit<Entry, "id" | "updatedAt"> & { id?: string }) => Promise<Entry>;
   deleteEntry: (id: string) => Promise<void>;
   setForcedState: (state: DemoState["forcedState"]) => void;
@@ -98,7 +104,7 @@ const DemoContext = createContext<DemoContextValue | null>(null);
 const STORAGE_KEY = "little-moment-prototype-v1";
 const API_MODE = process.env.NEXT_PUBLIC_BACKEND_MODE === "api";
 const initialState: DemoState = API_MODE
-  ? { ...defaultState, familyName: "", child: null, ownerEmail: "", partnerEmail: "", entries: [], membershipRole: null }
+  ? { ...defaultState, familyName: "", ownerLabel: DEFAULT_ROLE_LABELS.owner, memberLabel: DEFAULT_ROLE_LABELS.member, child: null, ownerEmail: "", partnerEmail: "", entries: [], membershipRole: null }
   : defaultState;
 
 async function apiRequest(path: string, init?: RequestInit) {
@@ -123,7 +129,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
         const partner = payload.members?.find((member: { role: string }) => member.role === "member");
         const ownerEmail = owner?.email || "";
         const partnerEmail = partner?.email || payload.pendingInviteEmail || "";
-        setState((current) => ({ ...current, familyName: payload.family?.name || current.familyName, child: payload.child ? { id: payload.child.id, nickname: payload.child.nickname, birthDate: payload.child.birthDate } : null, entries: (payload.entries || current.entries).map((entry: Entry) => ({ ...entry, photos: entry.photos.map((photo) => ({ ...photo, dataUrl: photo.previewUrl })) })), ownerEmail, partnerEmail, partnerStatus: partner ? "accepted" : payload.pendingInviteEmail ? "pending" : "none", membershipRole: currentMember?.role === "owner" ? "owner" : "member", session: true }));
+        setState((current) => ({ ...current, familyName: payload.family?.name || current.familyName, ownerLabel: payload.family?.ownerLabel || current.ownerLabel, memberLabel: payload.family?.memberLabel || current.memberLabel, child: payload.child ? { id: payload.child.id, nickname: payload.child.nickname, birthDate: payload.child.birthDate } : null, entries: (payload.entries || current.entries).map((entry: Entry) => ({ ...entry, photos: entry.photos.map((photo) => ({ ...photo, dataUrl: photo.previewUrl })) })), ownerEmail, partnerEmail, partnerStatus: partner ? "accepted" : payload.pendingInviteEmail ? "pending" : "none", membershipRole: currentMember?.role === "owner" ? "owner" : "member", session: true }));
       }).catch(() => {
         setState((current) => ({ ...current, session: false }));
       }).finally(() => setHydrated(true));
@@ -150,7 +156,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     signIn: () => setState((current) => ({ ...current, session: true })),
     saveChild: (nickname, birthDate) => {
       setState((current) => ({ ...current, child: { nickname, birthDate } }));
-      void apiRequest("/api/families", { method: "POST", body: JSON.stringify({ nickname, birthDate, familyName: "Keluarga Prakoso" }) })
+      void apiRequest("/api/families", { method: "POST", body: JSON.stringify({ nickname, birthDate }) })
         .then((result) => {
           if (result?.childId) setState((current) => current.child ? { ...current, child: { ...current.child, id: result.childId } } : current);
         })
@@ -175,6 +181,17 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
         await apiRequest("/api/families", { method: "PATCH", body: JSON.stringify({ name }) });
       } catch (error) {
         setState((current) => ({ ...current, familyName: previousName }));
+        throw error;
+      }
+    },
+    updateFamilyProfile: async (profile) => {
+      const previous = { familyName: state.familyName, ownerLabel: state.ownerLabel, memberLabel: state.memberLabel };
+      setState((current) => ({ ...current, familyName: profile.name, ownerLabel: profile.ownerLabel, memberLabel: profile.memberLabel }));
+      if (!API_MODE) return;
+      try {
+        await apiRequest("/api/families", { method: "PATCH", body: JSON.stringify({ name: profile.name, ownerLabel: profile.ownerLabel, memberLabel: profile.memberLabel }) });
+      } catch (error) {
+        setState((current) => ({ ...current, ...previous }));
         throw error;
       }
     },

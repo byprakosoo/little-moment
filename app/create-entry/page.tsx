@@ -9,7 +9,7 @@ import { BackLink, Button, PageFrame, PhotoPicker, TextAreaField, TextField, Typ
 export default function CreateEntryPage() {
   const router = useRouter();
   const [editId, setEditId] = useState<string | null>(null);
-  const { entries, saveEntry, forcedState } = useDemo();
+  const { entries, saveEntry, forcedState, membershipRole, ownerLabel, memberLabel } = useDemo();
   const existing = useMemo(() => editId ? entries.find((entry) => entry.id === editId) : undefined, [editId, entries]);
   const [date, setDate] = useState(existing?.happenedAt ?? new Date().toISOString().slice(0, 10));
   const [type, setType] = useState<EntryType>(existing?.type ?? "story");
@@ -26,7 +26,7 @@ export default function CreateEntryPage() {
     setBodyError(""); setSaving(true);
     const normalizedPhotos = forcedState === "storage-full" ? [] : forcedState === "upload-error" ? photos.map((photo, index) => index === photos.length - 1 ? { ...photo, status: "error" as const } : photo) : photos;
     try {
-      const entry = await saveEntry({ id: editId ?? undefined, type, title: title.trim(), body: body.trim(), happenedAt: date, author: "Baba", photos: normalizedPhotos });
+      const entry = await saveEntry({ id: editId ?? undefined, type, title: title.trim(), body: body.trim(), happenedAt: date, author: membershipRole === "member" ? memberLabel : ownerLabel, photos: normalizedPhotos });
       setSaving(false);
       router.replace(`/entry/${entry.id}`);
     } catch (error) {

@@ -47,7 +47,7 @@ Semua route berikut adalah file HTML statis pada fase awal. Nama route sengaja d
 ### S04 Timeline
 
 - Top bar: nama keluarga, status privacy, menu settings.
-- Ringkasan anak dengan umur relatif, contoh `Aksa, 14 bulan`.
+- Ringkasan anak dengan umur relatif, contoh `Si Kecil, 14 bulan`.
 - Composer prompt `Ada momen kecil hari ini?`.
 - Filter ringan: `Semua`, `Cerita`, `Milestone`.
 - Entry card: tanggal, judul opsional, excerpt, thumbnail gallery, author.

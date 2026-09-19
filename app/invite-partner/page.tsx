@@ -9,7 +9,7 @@ import { useDemo } from "@/components/demo-store";
 export default function InvitePartnerPage() {
   const router = useRouter();
   const { child, partnerEmail, invitePartner } = useDemo();
-  const [email, setEmail] = useState(partnerEmail === "mama@example.com" ? "" : partnerEmail);
+  const [email, setEmail] = useState(partnerEmail === "pasangan@example.com" ? "" : partnerEmail);
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");

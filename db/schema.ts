@@ -49,6 +49,8 @@ export const verification = mysqlTable("verification", {
 export const families = mysqlTable("families", {
   id: varchar("id", { length: 191 }).primaryKey(),
   name: varchar("name", { length: 160 }).notNull(),
+  ownerLabel: varchar("owner_label", { length: 40 }).notNull().default("Baba"),
+  memberLabel: varchar("member_label", { length: 40 }).notNull().default("Bubu"),
   createdAt: datetime("created_at").notNull(),
   updatedAt: datetime("updated_at").notNull(),
 });

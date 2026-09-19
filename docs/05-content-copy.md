@@ -19,7 +19,7 @@
 | Privacy link | Baca kebijakan privasi |
 | Onboarding heading | Siapa yang ingin kamu abadikan? |
 | Name label | Nama panggilan |
-| Name placeholder | Contoh: Aksa |
+| Name placeholder | Contoh: Si Kecil |
 | Birth date label | Tanggal lahir |
 | Onboarding CTA | Lanjutkan |
 | Invite heading | Jurnal ini lebih lengkap berdua |
@@ -34,7 +34,7 @@
 | Konteks | Copy |
 |---|---|
 | Greeting | Halo, Baba dan Bubu |
-| Child age | Aksa, 14 bulan |
+| Child age | Si Kecil, 14 bulan |
 | Composer prompt | Ada momen kecil hari ini? |
 | Composer CTA | Tulis cerita |
 | Filter all | Semua |
@@ -79,7 +79,7 @@
 | Delete dialog heading | Hapus cerita ini? |
 | Delete dialog body | Cerita dan foto di dalamnya akan dihapus dari jurnal keluarga. |
 | Delete confirm | Hapus cerita |
-| Family heading | Keluarga Prakoso |
+| Family heading | Keluarga Kecil |
 | Privacy label | Jurnal privat |
 | Members CTA | Kelola anggota |
 | Storage heading | Penyimpanan foto |

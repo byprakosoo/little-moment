@@ -58,6 +58,14 @@ npm install
 npm run db:push
 ```
 
+For an existing Little Moment database, apply the committed Drizzle migration (including configurable parent labels) with:
+
+```bash
+npm run db:migrate
+```
+
+Use `db:push` only for a new database or an explicitly reviewed development database.
+
 Jika `db:push` berhenti pada konflik index foreign key lama, jalankan perubahan kolom secara langsung dari SQL Editor TiDB lalu ulangi deploy:
 
 ```sql
@@ -78,13 +86,13 @@ vercel env add TIDB_ENABLE_SSL production --value "true" --yes
 vercel env add NEXT_PUBLIC_BACKEND_MODE production --value "api" --force --yes
 ```
 
-`BETTER_AUTH_URL` dan `NEXT_PUBLIC_APP_URL` harus memakai URL production Little Moment.
+`BETTER_AUTH_URL` dan `NEXT_PUBLIC_APP_URL` harus memakai URL deployment kamu sendiri, misalnya `https://little-moment-keluarga.vercel.app`.
 
 ## 4. Deploy dan cek health
 
 ```bash
 vercel --prod --yes
-curl https://little-moment-kappa.vercel.app/api/health
+curl https://<project>.vercel.app/api/health
 ```
 
 Hasil yang diharapkan:
@@ -100,14 +108,14 @@ Hasil yang diharapkan:
 3. Tambahkan Authorized JavaScript origins:
 
 ```text
-https://little-moment-kappa.vercel.app
+https://<project>.vercel.app
 http://localhost:3010
 ```
 
 4. Tambahkan Authorized redirect URIs:
 
 ```text
-https://little-moment-kappa.vercel.app/api/auth/callback/google
+https://<project>.vercel.app/api/auth/callback/google
 http://localhost:3010/api/auth/callback/google
 ```
 

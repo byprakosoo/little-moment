@@ -31,6 +31,7 @@ type DemoState = {
   membershipRole: "owner" | "member" | null;
   familyName: string;
   child: { id?: string; nickname: string; birthDate: string } | null;
+  ownerEmail: string;
   partnerEmail: string;
   partnerStatus: "none" | "pending" | "accepted";
   entries: Entry[];
@@ -46,6 +47,7 @@ const defaultState: DemoState = {
   membershipRole: "owner",
   familyName: "Keluarga Prakoso",
   child: { id: "child-1", nickname: "Aksa", birthDate: "2025-01-12" },
+  ownerEmail: "",
   partnerEmail: "mama@example.com",
   partnerStatus: "pending",
   entries: [
@@ -96,7 +98,7 @@ const DemoContext = createContext<DemoContextValue | null>(null);
 const STORAGE_KEY = "little-moment-prototype-v1";
 const API_MODE = process.env.NEXT_PUBLIC_BACKEND_MODE === "api";
 const initialState: DemoState = API_MODE
-  ? { ...defaultState, familyName: "", child: null, partnerEmail: "", entries: [], membershipRole: null }
+  ? { ...defaultState, familyName: "", child: null, ownerEmail: "", partnerEmail: "", entries: [], membershipRole: null }
   : defaultState;
 
 async function apiRequest(path: string, init?: RequestInit) {
@@ -117,9 +119,11 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
         if (!response.ok) throw new Error(`Bootstrap failed: ${response.status}`);
         const payload = await response.json();
         const currentMember = payload.members?.find((member: { userId: string; role: string }) => member.userId === payload.currentUserId);
+        const owner = payload.members?.find((member: { role: string }) => member.role === "owner");
         const partner = payload.members?.find((member: { role: string }) => member.role === "member");
+        const ownerEmail = owner?.email || "";
         const partnerEmail = partner?.email || payload.pendingInviteEmail || "";
-        setState((current) => ({ ...current, familyName: payload.family?.name || current.familyName, child: payload.child ? { id: payload.child.id, nickname: payload.child.nickname, birthDate: payload.child.birthDate } : null, entries: (payload.entries || current.entries).map((entry: Entry) => ({ ...entry, photos: entry.photos.map((photo) => ({ ...photo, dataUrl: photo.previewUrl })) })), partnerEmail, partnerStatus: partner ? "accepted" : payload.pendingInviteEmail ? "pending" : "none", membershipRole: currentMember?.role === "owner" ? "owner" : "member", session: true }));
+        setState((current) => ({ ...current, familyName: payload.family?.name || current.familyName, child: payload.child ? { id: payload.child.id, nickname: payload.child.nickname, birthDate: payload.child.birthDate } : null, entries: (payload.entries || current.entries).map((entry: Entry) => ({ ...entry, photos: entry.photos.map((photo) => ({ ...photo, dataUrl: photo.previewUrl })) })), ownerEmail, partnerEmail, partnerStatus: partner ? "accepted" : payload.pendingInviteEmail ? "pending" : "none", membershipRole: currentMember?.role === "owner" ? "owner" : "member", session: true }));
       }).catch(() => {
         setState((current) => ({ ...current, session: false }));
       }).finally(() => setHydrated(true));

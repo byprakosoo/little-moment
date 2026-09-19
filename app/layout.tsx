@@ -5,6 +5,11 @@ import { DemoProvider } from "@/components/demo-store";
 export const metadata: Metadata = {
   title: "Little Moment",
   description: "Jurnal privat untuk momen kecil keluarga.",
+  icons: {
+    icon: "/little-moment.svg",
+    shortcut: "/little-moment.svg",
+    apple: "/little-moment.svg",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

@@ -96,9 +96,11 @@ export function StepLabel({ current, total = 3 }: { current: number; total?: num
   return <div className="step-label"><span>Langkah {current} dari {total}</span><span className="step-label__line"><span style={{ width: `${(current / total) * 100}%` }} /></span></div>;
 }
 
-export function PhotoPlaceholder({ photo, index = 0, className = "" }: { photo: Photo; index?: number; className?: string }) {
-  return <div className={`photo-placeholder photo-placeholder--${index % 4} ${className}`} role="img" aria-label={photo.label}>
-    {photo.previewUrl && <img className="photo-placeholder__image" src={photo.previewUrl} alt={photo.label} />}
+export function PhotoPlaceholder({ photo, index = 0, className = "", fluid = false }: { photo: Photo; index?: number; className?: string; fluid?: boolean }) {
+  const [ratio, setRatio] = useState<number | null>(null);
+  const style = fluid && ratio ? { aspectRatio: `${ratio}` } : undefined;
+  return <div className={`photo-placeholder photo-placeholder--${index % 4} ${fluid ? "photo-placeholder--fluid" : ""} ${className}`} style={style} role="img" aria-label={photo.label}>
+    {photo.previewUrl && <img className="photo-placeholder__image" src={photo.previewUrl} alt={photo.label} loading="lazy" decoding="async" onLoad={(event) => { if (fluid && event.currentTarget.naturalWidth && event.currentTarget.naturalHeight) setRatio(event.currentTarget.naturalWidth / event.currentTarget.naturalHeight); }} />}
     <span className="photo-placeholder__sun" />
     <span className="photo-placeholder__silhouette">{index % 2 === 0 ? "A" : "•"}</span>
     {photo.status === "error" && <span className="photo-placeholder__error"><X size={14} /></span>}
@@ -125,7 +127,7 @@ export function StorageBanner({ full = false, onExport }: { full?: boolean; onEx
 export function EntryCard({ entry }: { entry: Entry }) {
   return <Link href={`/entry/${entry.id}`} className="entry-card">
     <div className="entry-card__meta"><span>{formatJournalDate(entry.happenedAt)}</span><span className={`type-pill type-pill--${entry.type}`}>{entry.type === "milestone" ? "Milestone" : "Cerita harian"}</span></div>
-    <div className="entry-card__body"><div className="entry-card__copy">{entry.title && <h3>{entry.title}</h3>}<p>{entry.body}</p></div>{entry.photos.length > 0 && <div className={`entry-card__gallery entry-card__gallery--${Math.min(entry.photos.length, 3)}`}>{entry.photos.slice(0, 3).map((photo, index) => <PhotoPlaceholder key={photo.id} photo={photo} index={index} />)}{entry.photos.length > 3 && <span className="gallery-count">+{entry.photos.length - 3}</span>}</div>}<span className="entry-card__author">Ditulis oleh {entry.author}</span></div>
+    <div className="entry-card__body"><div className="entry-card__copy">{entry.title && <h3>{entry.title}</h3>}<p>{entry.body}</p></div>{entry.photos.length > 0 && <div className={`entry-card__gallery entry-card__gallery--${Math.min(entry.photos.length, 3)}`}>{entry.photos.slice(0, 3).map((photo, index) => <PhotoPlaceholder key={photo.id} photo={photo} index={index} fluid={entry.photos.length === 1} />)}{entry.photos.length > 3 && <span className="gallery-count">+{entry.photos.length - 3}</span>}</div>}<span className="entry-card__author">Ditulis oleh {entry.author}</span></div>
   </Link>;
 }
 

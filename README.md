@@ -50,10 +50,9 @@ Open `http://localhost:3010`. To make the mode explicit, use `NEXT_PUBLIC_BACKEN
 3. Apply the schema and start the app:
 
    ```bash
-   # Database baru:
-   npm run db:push
-   # Jika database sudah pernah dipakai, gunakan migrasi:
-   # npm run db:migrate
+   # Jalur yang direkomendasikan untuk database baru maupun existing:
+   npm run db:migrate
+   # Gunakan db:push hanya untuk database development yang memang direview.
    npm run dev
    ```
 
@@ -69,7 +68,7 @@ Each family should create its own:
 4. Google OAuth client with that deployment's callback URL.
 5. Gmail App Password if email invitations are enabled.
 
-The deployment URL must be used consistently for `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL`, and Google OAuth origins/redirects. Run `npm run db:push` against the target database before the first API-mode deployment.
+The deployment URL must be used consistently for `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL`, and Google OAuth origins/redirects. Run `npm run db:migrate` against the target database before the first API-mode deployment.
 
 ## Privacy model
 

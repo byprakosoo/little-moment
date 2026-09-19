@@ -51,20 +51,20 @@ Jika database default dari TiDB adalah `test`, gunakan database itu atau buat da
 CREATE DATABASE little_moment;
 ```
 
-Apply schema:
+Apply the committed migration chain. This is the recommended path for a fresh database and keeps future schema changes trackable:
 
 ```bash
 npm install
-npm run db:push
+npm run db:migrate
 ```
 
-For an existing Little Moment database, apply the committed Drizzle migration (including configurable parent labels) with:
+For a database that already has Little Moment tables, apply the committed Drizzle migration (including configurable parent labels) with:
 
 ```bash
 npm run db:migrate
 ```
 
-Use `db:push` only for a new database or an explicitly reviewed development database.
+Use `db:push` only for an explicitly reviewed development database. Do not mix an untracked `db:push`-initialized database with the migration chain unless its Drizzle migration metadata has also been reconciled.
 
 Jika `db:push` berhenti pada konflik index foreign key lama, jalankan perubahan kolom secara langsung dari SQL Editor TiDB lalu ulangi deploy:
 

@@ -10,9 +10,6 @@ export async function getRequestUser(request: Request) {
 }
 
 async function ensureInviteMembership(user: { id: string; email: string; name?: string }) {
-  const [existingMembership] = await db.select().from(familyMembers).where(eq(familyMembers.userId, user.id)).limit(1);
-  if (existingMembership) return existingMembership;
-
   const now = new Date();
   const [invite] = await db.select().from(invites)
     .where(and(
@@ -21,17 +18,35 @@ async function ensureInviteMembership(user: { id: string; email: string; name?: 
     ))
     .orderBy(desc(invites.createdAt))
     .limit(1);
-  if (!invite) return null;
+
+  const memberships = await db.select().from(familyMembers)
+    .where(eq(familyMembers.userId, user.id))
+    .orderBy(desc(familyMembers.createdAt));
+
+  // A user can arrive here with an older, empty family created before they
+  // completed an invitation. Prefer the matching invite and attach that
+  // account to the invited family instead of keeping the user on the orphan
+  // timeline. We keep the old membership intact so no user data is deleted.
+  if (!invite) return memberships[0] || null;
+  const invitedMembership = memberships.find((membership) => membership.familyId === invite.familyId);
+  if (invitedMembership) {
+    if (invite.status === "pending") await db.update(invites).set({ status: "accepted" }).where(eq(invites.id, invite.id));
+    return invitedMembership;
+  }
 
   await db.transaction(async (tx) => {
-    const [membership] = await tx.select().from(familyMembers).where(eq(familyMembers.userId, user.id)).limit(1);
+    const [membership] = await tx.select().from(familyMembers)
+      .where(and(eq(familyMembers.userId, user.id), eq(familyMembers.familyId, invite.familyId)))
+      .limit(1);
     if (membership) return;
     await tx.insert(familyMembers).values({ id: crypto.randomUUID(), familyId: invite.familyId, userId: user.id, displayName: user.name || "Orang tua", role: "member", inviteStatus: "accepted", createdAt: now });
     if (invite.status === "pending") await tx.update(invites).set({ status: "accepted" }).where(eq(invites.id, invite.id));
   });
 
-  const [membership] = await db.select().from(familyMembers).where(eq(familyMembers.userId, user.id)).limit(1);
-  return membership || null;
+  const [membership] = await db.select().from(familyMembers)
+    .where(and(eq(familyMembers.userId, user.id), eq(familyMembers.familyId, invite.familyId)))
+    .limit(1);
+  return membership || memberships[0] || null;
 }
 
 export async function requireFamily(request: Request) {

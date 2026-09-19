@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { children as childrenTable, families, familyMembers } from "@/db/schema";
 import { getRequestUser, handleApiError, requireFamily } from "@/lib/api-auth";
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     // OAuth redirects every sign-in through onboarding. Reuse the existing
     // family/child instead of creating duplicates when a returning user posts
     // the form again (or when onboarding is submitted twice).
-    const [existingMembership] = await db.select({ familyId: familyMembers.familyId }).from(familyMembers).where(eq(familyMembers.userId, user.id)).limit(1);
+    const [existingMembership] = await db.select({ familyId: familyMembers.familyId }).from(familyMembers).where(eq(familyMembers.userId, user.id)).orderBy(desc(familyMembers.createdAt)).limit(1);
     if (existingMembership) {
       const [existingChild] = await db.select({ id: childrenTable.id }).from(childrenTable).where(eq(childrenTable.familyId, existingMembership.familyId)).limit(1);
       if (existingChild) return NextResponse.json({ familyId: existingMembership.familyId, childId: existingChild.id, existing: true });

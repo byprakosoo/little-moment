@@ -11,7 +11,8 @@ export async function GET(request: Request) {
     const context = await requireFamily(request);
     if ("response" in context) return context.response;
     const params = new URL(request.url).searchParams;
-    const limit = Math.min(20, Math.max(1, Number(params.get("limit") || 20)));
+    const requestedLimit = Number(params.get("limit") || 20);
+    const limit = Number.isFinite(requestedLimit) ? Math.min(20, Math.max(1, requestedLimit)) : 20;
     const query = params.get("q")?.trim();
     const from = params.get("from");
     const to = params.get("to");

@@ -48,16 +48,40 @@ export async function PATCH(request: Request) {
   try {
     const context = await requireFamily(request);
     if ("response" in context) return context.response;
-    const body = await request.json() as { name?: string; ownerLabel?: string; memberLabel?: string };
+    const body = await request.json() as { name?: string; ownerLabel?: string; memberLabel?: string; childNickname?: string; childBirthDate?: string };
     const [currentFamily] = await db.select().from(families).where(eq(families.id, context.membership.familyId)).limit(1);
     if (!currentFamily) return NextResponse.json({ error: "Family not found" }, { status: 404 });
     const name = body.name === undefined ? currentFamily.name : body.name.trim();
     const ownerLabel = body.ownerLabel === undefined ? currentFamily.ownerLabel : body.ownerLabel.trim();
     const memberLabel = body.memberLabel === undefined ? currentFamily.memberLabel : body.memberLabel.trim();
+    const childNickname = body.childNickname === undefined ? undefined : body.childNickname.trim();
+    const childBirthDate = body.childBirthDate === undefined ? undefined : body.childBirthDate.trim();
     if (name.length < 2 || name.length > 160) return NextResponse.json({ error: "Nama keluarga harus 2–160 karakter" }, { status: 400 });
     if (ownerLabel.length < 1 || ownerLabel.length > 40 || memberLabel.length < 1 || memberLabel.length > 40) return NextResponse.json({ error: "Label orang tua harus 1–40 karakter" }, { status: 400 });
-    await db.update(families).set({ name, ownerLabel, memberLabel, updatedAt: new Date() }).where(eq(families.id, context.membership.familyId));
-    return NextResponse.json({ name, ownerLabel, memberLabel });
+    if (childNickname !== undefined && (childNickname.length < 1 || childNickname.length > 40)) return NextResponse.json({ error: "Nama panggilan bayi harus 1–40 karakter" }, { status: 400 });
+    if (childBirthDate !== undefined) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(childBirthDate)) return NextResponse.json({ error: "Tanggal lahir bayi tidak valid" }, { status: 400 });
+      const [year, month, day] = childBirthDate.split("-").map(Number);
+      const parsedDate = new Date(Date.UTC(year, month - 1, day));
+      const today = new Date();
+      const todayValue = today.toISOString().slice(0, 10);
+      const isCalendarDate = parsedDate.getUTCFullYear() === year && parsedDate.getUTCMonth() === month - 1 && parsedDate.getUTCDate() === day;
+      if (Number.isNaN(parsedDate.getTime()) || !isCalendarDate) return NextResponse.json({ error: "Tanggal lahir bayi tidak valid" }, { status: 400 });
+      if (childBirthDate > todayValue) return NextResponse.json({ error: "Tanggal lahir bayi tidak boleh di masa depan" }, { status: 400 });
+    }
+    const [currentChild] = await db.select().from(childrenTable).where(eq(childrenTable.familyId, context.membership.familyId)).limit(1);
+    const nextChild = currentChild && (childNickname !== undefined || childBirthDate !== undefined)
+      ? { id: currentChild.id, nickname: childNickname ?? currentChild.nickname, birthDate: childBirthDate ?? currentChild.birthDate }
+      : currentChild
+        ? { id: currentChild.id, nickname: currentChild.nickname, birthDate: currentChild.birthDate }
+        : null;
+    await db.transaction(async (tx) => {
+      await tx.update(families).set({ name, ownerLabel, memberLabel, updatedAt: new Date() }).where(eq(families.id, context.membership.familyId));
+      if (currentChild && nextChild && (childNickname !== undefined || childBirthDate !== undefined)) {
+        await tx.update(childrenTable).set({ nickname: nextChild.nickname, birthDate: nextChild.birthDate, updatedAt: new Date() }).where(eq(childrenTable.id, currentChild.id));
+      }
+    });
+    return NextResponse.json({ name, ownerLabel, memberLabel, child: nextChild });
   } catch (error) {
     return handleApiError(error);
   }

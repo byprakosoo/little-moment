@@ -28,6 +28,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { Entry, EntryType, Photo, useDemo } from "./demo-store";
+import { formatChildAge } from "@/lib/child-age";
 
 export function BrandMark({ compact = false, href = "/timeline" }: { compact?: boolean; href?: string }) {
   return (
@@ -92,6 +93,10 @@ export function PageLoading({ label = "Memuat jurnal..." }: { label?: string }) 
   return <div className="page-loading" role="status" aria-live="polite"><CircleNotch className="spin" size={22} /><span>{label}</span></div>;
 }
 
+export function TimelineSkeleton() {
+  return <div className="timeline-skeleton" role="status" aria-label="Memuat cerita"><span className="timeline-skeleton__card" /><span className="timeline-skeleton__card" /><span className="timeline-skeleton__card" /></div>;
+}
+
 export function StepLabel({ current, total = 3 }: { current: number; total?: number }) {
   return <div className="step-label"><span>Langkah {current} dari {total}</span><span className="step-label__line"><span style={{ width: `${(current / total) * 100}%` }} /></span></div>;
 }
@@ -124,9 +129,9 @@ export function StorageBanner({ full = false, onExport }: { full?: boolean; onEx
   </div>;
 }
 
-export function EntryCard({ entry }: { entry: Entry }) {
+export function EntryCard({ entry, childBirthDate }: { entry: Entry; childBirthDate?: string }) {
   return <Link href={`/entry/${entry.id}`} className="entry-card">
-    <div className="entry-card__meta"><span>{formatJournalDate(entry.happenedAt)}</span><span className={`type-pill type-pill--${entry.type}`}>{entry.type === "milestone" ? "Milestone" : "Cerita harian"}</span></div>
+    <div className="entry-card__meta"><div className="entry-card__meta-main"><span>{formatJournalDate(entry.happenedAt)}</span>{childBirthDate && <span className="entry-card__age">Usia {formatChildAge(childBirthDate, entry.happenedAt)}</span>}</div><span className={`type-pill type-pill--${entry.type}`}>{entry.type === "milestone" ? "Milestone" : "Cerita harian"}</span></div>
     <div className="entry-card__body">{entry.photos.length > 0 && <div className={`entry-card__gallery entry-card__gallery--${Math.min(entry.photos.length, 3)}`}>{entry.photos.slice(0, 3).map((photo, index) => <PhotoPlaceholder key={photo.id} photo={photo} index={index} fluid={entry.photos.length === 1} />)}{entry.photos.length > 3 && <span className="gallery-count">+{entry.photos.length - 3}</span>}</div>}<div className="entry-card__copy">{entry.title && <h3>{entry.title}</h3>}<p>{entry.body}</p></div><span className="entry-card__author">Ditulis oleh {entry.author}</span></div>
   </Link>;
 }

@@ -9,7 +9,7 @@ import { BackLink, Button, PageFrame, PhotoPicker, TextAreaField, TextField, Typ
 export default function CreateEntryPage() {
   const router = useRouter();
   const [editId, setEditId] = useState<string | null>(null);
-  const { entries, saveEntry, forcedState, membershipRole, ownerLabel, memberLabel } = useDemo();
+  const { entries, saveEntry, loadEntry, forcedState, membershipRole, ownerLabel, memberLabel } = useDemo();
   const existing = useMemo(() => editId ? entries.find((entry) => entry.id === editId) : undefined, [editId, entries]);
   const [date, setDate] = useState(existing?.happenedAt ?? new Date().toISOString().slice(0, 10));
   const [type, setType] = useState<EntryType>(existing?.type ?? "story");
@@ -19,6 +19,7 @@ export default function CreateEntryPage() {
   const [bodyError, setBodyError] = useState("");
   const [saving, setSaving] = useState(false);
   useEffect(() => { setEditId(new URLSearchParams(window.location.search).get("edit")); }, []);
+  useEffect(() => { if (editId && !existing) void loadEntry(editId); }, [editId, existing]);
   useEffect(() => { if (existing) { setDate(existing.happenedAt); setType(existing.type); setTitle(existing.title); setBody(existing.body); setPhotos(existing.photos); } }, [existing]);
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();

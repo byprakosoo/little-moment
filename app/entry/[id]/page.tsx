@@ -4,17 +4,24 @@ import { DotsThree, PencilSimple, Trash } from "@phosphor-icons/react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useDemo } from "@/components/demo-store";
-import { BackLink, Button, DeleteDialog, PageFrame, PhotoPlaceholder, Toast, formatJournalDateTime, formatJournalHeaderDate, formatJournalTime } from "@/components/little-moment";
+import { BackLink, Button, DeleteDialog, PageFrame, PageLoading, PhotoPlaceholder, Toast, formatJournalDateTime, formatJournalHeaderDate, formatJournalTime } from "@/components/little-moment";
 
 export default function EntryDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { entries, deleteEntry } = useDemo();
+  const { entries, deleteEntry, loadEntry } = useDemo();
   const entry = entries.find((item) => item.id === params.id);
+  const apiMode = process.env.NEXT_PUBLIC_BACKEND_MODE === "api";
+  const [entryLoading, setEntryLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [toast, setToast] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!apiMode || !params.id || entry) return;
+    setEntryLoading(true);
+    void loadEntry(params.id).finally(() => setEntryLoading(false));
+  }, [apiMode, params.id, entry]);
   useEffect(() => {
     if (!menuOpen) return;
     const closeOnOutsideClick = (event: MouseEvent) => {
@@ -30,7 +37,7 @@ export default function EntryDetailPage() {
       document.removeEventListener("keydown", closeOnEscape);
     };
   }, [menuOpen]);
-  if (!entry) return <PageFrame className="detail-page"><BackLink /><div className="empty-state" style={{ marginTop: 30 }}><h2>Cerita tidak ditemukan</h2><p>Mungkin cerita ini sudah dihapus dari jurnal.</p><Button onClick={() => router.push("/timeline")}>Kembali ke timeline</Button></div></PageFrame>;
+  if (!entry) return <PageFrame className="detail-page"><BackLink />{entryLoading ? <PageLoading label="Membuka cerita..." /> : <div className="empty-state" style={{ marginTop: 30 }}><h2>Cerita tidak ditemukan</h2><p>Mungkin cerita ini sudah dihapus dari jurnal.</p><Button onClick={() => router.push("/timeline")}>Kembali ke timeline</Button></div>}</PageFrame>;
   const photos = [...entry.photos];
   const confirmDelete = async () => {
     setDeleting(false);
